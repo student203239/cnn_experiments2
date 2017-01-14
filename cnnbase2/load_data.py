@@ -68,10 +68,16 @@ class CnnDataLoader(object):
         im = io.imread(self.image_paths[i])
         im = im.astype('float32')
         im /= 256
-        # print 'im.shape'
-        # print im.shape
+        print 'im.shape'
+        print im.shape
         h = im.shape[0]
         w = im.shape[1]
+        if im.ndim == 2:
+            im_tmp = np.zeros((h,w,3), dtype='float32')
+            im_tmp[:,:,0] = im
+            im_tmp[:,:,1] = im
+            im_tmp[:,:,2] = im
+            im = im_tmp
         # im2 = np.random.rand(w,w,3).astype('float32')
         if h > w:
             im2 = np.zeros((h,h,3), dtype='float32')
@@ -118,11 +124,13 @@ class CnnDataLoader(object):
         hbb_box_test = np.zeros((test_size, 6), dtype='int16')
         train_index = 0
         i_range = range(0, len(self.image_paths))
-        shuffle(i_range)
+        # shuffle(i_range)
         for i in  i_range:
             # print i
             if os.path.isfile(self.image_paths[i]):
                 # print 'file ok'
+                print i
+                print self.image_paths[i]
                 x, hbb_box = self.load_image_and_hbb_box(i, w, h)
                 if train_index < train_size:
                     x_train[train_index,:,:,:] = x.astype('float32')
@@ -183,8 +191,8 @@ class GaussianCalc(object):
 
 def show_example2_3():
     loader = CnnDataLoader(CnnDirsConfig())
-    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=30)
-    index = 1
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=99)
+    index = 49
     io.imshow(x_train[index,:,:,:])
     io.show()
 
@@ -242,8 +250,14 @@ if __name__ == '__main__':
     loader = CnnDataLoader(config)
 
     bin = Binary()
-    # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=30)
-    # bin.save_pack(config.data_filename('test_data'), x_train, hbb_box_train, x_test, hbb_box_test)
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=100)
+    bin.save_pack(config.data_filename('100examples'), x_train, hbb_box_train, x_test, hbb_box_test)
+
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=1000)
+    bin.save_pack(config.data_filename('1000examples'), x_train, hbb_box_train, x_test, hbb_box_test)
+
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=5000)
+    bin.save_pack(config.data_filename('5000examples'), x_train, hbb_box_train, x_test, hbb_box_test)
 
     # Load test:
     # x_train, hbb_box_train, x_test, hbb_box_test = bin.load_pack(config.data_filename('test_data'))
