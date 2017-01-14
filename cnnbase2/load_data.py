@@ -18,6 +18,9 @@ class CnnDirsConfig(object):
         self.model_history_dir = 'D:/mgr_dir1/model_history/'
         self.model_results = 'D:/mgr_dir1/model_results/'
 
+    def data_filename(self, filename):
+        return self.data_dir + filename
+
 class CnnDataLoader(object):
 
     def __init__(self, config):
@@ -196,40 +199,62 @@ def sync(fh):
     fsync(fh.fileno())
 
 class Binary(object):
-    def save(self, arr, pth):
+
+    def save_4_dim(self, arr, pth):
         with open(pth, 'wb+') as fh:
             fh.write(b'{0:s} {1:d} {2:d} {3:d} {4:d}\n'.format(arr.dtype, *arr.shape))
             fh.write(arr.data)
             sync(fh)
 
-    def load(self, pth):
+    def save_2_dim(self, arr, pth):
+        with open(pth, 'wb+') as fh:
+            fh.write(b'{0:s} {1:d} {2:d}\n'.format(arr.dtype, *arr.shape))
+            fh.write(arr.data)
+            sync(fh)
+
+    def load_4_dim(self, pth):
         with open(pth, 'rb') as fh:
             dtype, w, h, a, b = str(fh.readline()).split()
             return np.frombuffer(fh.read(), dtype=dtype).reshape((int(w), int(h), int(a), int(b)))
 
-    def save4(self, x_train, y_train, x_test, y_test, pth):
-        self.save(x_train, pth+'.x_train')
-        self.save(y_train, pth+'.y_train')
-        self.save(x_test, pth+'.x_test')
-        self.save(y_test, pth+'.y_test')
+    def load_2_dim(self, pth):
+        with open(pth, 'rb') as fh:
+            dtype, w, h = str(fh.readline()).split()
+            return np.frombuffer(fh.read(), dtype=dtype).reshape((int(w), int(h)))
 
-    def load4(self, pth):
-        x_train = self.load(pth+'.x_train')
-        y_train = self.load(pth+'.y_train')
-        x_test = self.load(pth+'.x_test')
-        y_test = self.load(pth+'.y_test')
-        return (x_train, y_train), (x_test, y_test)
+    def save_pack(self, pth, x_train, hbb_box_train, x_test, hbb_box_test):
+        self.save_4_dim(x_train, pth+'.x_train')
+        self.save_2_dim(hbb_box_train, pth+'.hbb_train')
+        self.save_4_dim(x_test, pth+'.x_test')
+        self.save_2_dim(hbb_box_test, pth+'.hbb_test')
+
+    def load_pack(self, pth):
+        x_train = self.load_4_dim(pth+'.x_train')
+        hbb_box_train = self.load_2_dim(pth+'.hbb_train')
+        x_test = self.load_4_dim(pth+'.x_test')
+        hbb_box_test = self.load_2_dim(pth+'.hbb_test')
+        return x_train, hbb_box_train, x_test, hbb_box_test
 
 if __name__ == '__main__':
     print 'started'
-    show_example2_3()
+    # show_example2_3()
+    config = CnnDirsConfig()
+    loader = CnnDataLoader(config)
 
-    # bin = Binary()
-    # (x_train, y_train), (x_test, y_test) = load_train_data(max_examples=3500,w=64, h=64, test_factor=0.12)
-    # bin.save4(x_train, y_train, x_test, y_test, '3500examples64x64_sigma6_8')
+    bin = Binary()
+    # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=30)
+    # bin.save_pack(config.data_filename('test_data'), x_train, hbb_box_train, x_test, hbb_box_test)
+
+    # Load test:
+    # x_train, hbb_box_train, x_test, hbb_box_test = bin.load_pack(config.data_filename('test_data'))
+    # index = 1
+    # io.imshow(x_train[index,:,:,:])
+    # io.show()
     #
-    # (x_train, y_train), (x_test, y_test) = load_train_data(max_examples=3500,w=128, h=128, test_factor=0.12)
-    # bin.save4(x_train, y_train, x_test, y_test, '3500examples128x128_sigma6_8')
+    # heat_map = loader.create_heat_map(hbb_box_train[index,:], 128, 128)
+    #
+    # io.imshow(heat_map)
+    # io.show()
 
     # bin.save(x_train, 'x_train')
     # bin.save(y_train, 'y_train')
