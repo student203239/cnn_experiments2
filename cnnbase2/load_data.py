@@ -21,6 +21,12 @@ class CnnDirsConfig(object):
     def data_filename(self, filename):
         return self.data_dir + filename
 
+    def model_filename(self, filename):
+        return self.model_dir + filename
+
+    def model_history_filename(self, filename):
+        return self.model_history_dir + filename
+
 class CnnDataLoader(object):
 
     def __init__(self, config):
@@ -54,14 +60,26 @@ class CnnDataLoader(object):
         return self.config.img_path_prefix + path
 
     def create_heat_map(self, hbb_box, return_w, return_h):
-        x1, y1, x2, y2, w, h = hbb_box
         heat_map = np.zeros((return_w, return_h))
+        # x1, y1, x2, y2, w, h = hbb_box
+        # y1 = int(y1*return_w/w)
+        # x1 = int(x1*return_w/w)
+        # x2 = int(x2*return_w/w)
+        # y2 = int(y2*return_w/w)
+        x1, y1, x2, y2 = self.get_heat_map_loc(hbb_box, return_w, return_h)
+        heat_map[y1:y2,x1:x2] = tr.resize(self.gaussion_buffer, (y2-y1, x2-x1))
+        return heat_map
+
+    def get_heat_map_loc(self, hbb_box, return_w, return_h):
+        x1, y1, x2, y2, w, h = hbb_box
         y1 = int(y1*return_w/w)
         x1 = int(x1*return_w/w)
         x2 = int(x2*return_w/w)
         y2 = int(y2*return_w/w)
-        heat_map[y1:y2,x1:x2] = tr.resize(self.gaussion_buffer, (y2-y1, x2-x1))
-        return heat_map
+        return x1, y1, x2, y2
+
+    def get_heat_map_to_paste(self, x1, y1, x2, y2):
+        return tr.resize(self.gaussion_buffer, (y2-y1, x2-x1))
 
     def load_image_and_hbb_box(self, i, return_w=256, return_h=256):
         # im = io.imread(self.image_paths[i], as_grey=True)
@@ -245,19 +263,19 @@ class Binary(object):
 
 if __name__ == '__main__':
     print 'started'
-    # show_example2_3()
-    config = CnnDirsConfig()
-    loader = CnnDataLoader(config)
-
-    bin = Binary()
-    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=100)
-    bin.save_pack(config.data_filename('100examples'), x_train, hbb_box_train, x_test, hbb_box_test)
-
-    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=1000)
-    bin.save_pack(config.data_filename('1000examples'), x_train, hbb_box_train, x_test, hbb_box_test)
-
-    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=5000)
-    bin.save_pack(config.data_filename('5000examples'), x_train, hbb_box_train, x_test, hbb_box_test)
+    show_example2_3()
+    # config = CnnDirsConfig()
+    # loader = CnnDataLoader(config)
+    #
+    # bin = Binary()
+    # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=100)
+    # bin.save_pack(config.data_filename('100examples'), x_train, hbb_box_train, x_test, hbb_box_test)
+    #
+    # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=1000)
+    # bin.save_pack(config.data_filename('1000examples'), x_train, hbb_box_train, x_test, hbb_box_test)
+    #
+    # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=5000)
+    # bin.save_pack(config.data_filename('5000examples'), x_train, hbb_box_train, x_test, hbb_box_test)
 
     # Load test:
     # x_train, hbb_box_train, x_test, hbb_box_test = bin.load_pack(config.data_filename('test_data'))
