@@ -34,9 +34,36 @@ class Model1(CnnModelDecorator):
         model.add(Convolution2D(1, 1, 1))
         return model
 
+class Model2(CnnModelDecorator):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['input_shape'] = (128, 128, 3)
+        kwargs['output_shape'] = (22, 22)
+        super(Model2, self).__init__(*args, **kwargs)
+
+    def _new_model(self, input_shape):
+        model = Sequential()
+        model.add(Convolution2D(20, 5, 5,
+                                border_mode='valid',
+                                input_shape=input_shape,
+                                subsample=(2,2)))
+        model.add(Convolution2D(25, 3, 3, subsample=(2,2)))
+        model.add(Activation('relu'))
+        # model.add(MaxPooling2D(pool_size=(2,2)))
+
+        model.add(Convolution2D(35, 3, 3))
+        model.add(Convolution2D(35, 3, 3))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(25, 3, 3))
+        model.add(Convolution2D(15, 3, 3))
+        model.add(Activation('relu'))
+
+        model.add(Convolution2D(1, 1, 1))
+        return model
+
 if __name__ == '__main__':
     model_filename = 'test_model'
     config = CnnDirsConfig()
-    model = Model1(config, '100examples', model_filename)
+    model = Model2(config, '100examples', model_filename)
     predicted = model.model.predict_classes(model.X_train)
     print (predicted.shape)
