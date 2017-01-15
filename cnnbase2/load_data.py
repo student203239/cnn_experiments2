@@ -27,6 +27,9 @@ class CnnDirsConfig(object):
     def model_history_filename(self, filename):
         return self.model_history_dir + filename
 
+    def model_results_filename(self, filename):
+        return self.model_results + filename
+
 class CnnDataLoader(object):
 
     def __init__(self, config):

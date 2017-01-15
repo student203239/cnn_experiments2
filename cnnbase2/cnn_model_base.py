@@ -7,6 +7,7 @@ from keras.utils import np_utils
 from keras import backend as K
 import skimage.transform as tr
 import numpy as np
+from skimage import io, exposure, img_as_uint, img_as_float
 
 from cnnbase2.load_data import Binary, CnnDataLoader
 
@@ -91,6 +92,44 @@ class CnnModelDecorator(object):
         filename += self.__class__.__name__
         filename += '.model'
         return filename
+
+    def show_results(self, interactive=False):
+        predicted_test = self.model.predict(self.X_test)
+
+        if interactive:
+            index = 0
+            io.imshow(self.X_test[index,:,:,:])
+            io.show()
+            io.imshow(predicted_test[index,:,:,0])
+            io.show()
+
+        for index in range(self.X_test.shape[0]):
+            im = self.X_test[index,:,:,:]
+            im = exposure.rescale_intensity(im, out_range='float')
+            im = img_as_uint(im)
+
+            io.imsave(self.config.model_results_filename('imgs/%d_x_test.png' % index), im)
+
+            n = 3
+            im = np.kron(im, np.ones((n,n,1)))
+            im = exposure.rescale_intensity(im, out_range='float')
+            im = img_as_uint(im)
+            print 'shape'
+            print im.shape
+            io.imsave(self.config.model_results_filename('imgs_big/%d_x_test_big.png' % index), im)
+
+            im = predicted_test[index,:,:,0]
+            im = exposure.rescale_intensity(im, out_range='float')
+            im = img_as_uint(im)
+
+            io.imsave(self.config.model_results_filename('imgs/%d_y_predicted.png' % index), im)
+
+            n = 8
+            im = np.kron(im, np.ones((n,n)))
+            im = exposure.rescale_intensity(im, out_range='float')
+            im = img_as_uint(im)
+
+            io.imsave(self.config.model_results_filename('imgs_big/%d_y_predicted_big.png' % index), im)
 
 
 if __name__ == '__main__':
