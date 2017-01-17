@@ -61,9 +61,129 @@ class Model2(CnnModelDecorator):
         model.add(Convolution2D(1, 1, 1))
         return model
 
+class Model3(CnnModelDecorator):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['input_shape'] = (128, 128, 3)
+        kwargs['output_shape'] = (12, 12)
+        super(Model3, self).__init__(*args, **kwargs)
+
+    def _new_model(self, input_shape):
+        model = Sequential()
+        model.add(Convolution2D(15, 3, 3,
+                                border_mode='valid',
+                                input_shape=input_shape,
+                                subsample=(1,1)))
+        model.add(Convolution2D(15, 3, 3, subsample=(1,1)))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(20, 3, 3))
+        model.add(Convolution2D(20, 3, 3))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(3,3)))
+
+        model.add(Convolution2D(25, 3, 3))
+        model.add(Convolution2D(25, 3, 3))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(15, 3, 3))
+        model.add(Convolution2D(15, 3, 3))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2,2)))
+
+        model.add(Convolution2D(15, 3, 3))
+        model.add(Convolution2D(15, 3, 3))
+        model.add(Activation('relu'))
+
+        model.add(Convolution2D(1, 1, 1))
+        return model
+
+class Model4(CnnModelDecorator):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['input_shape'] = (128, 128, 3)
+        kwargs['output_shape'] = (28, 28)
+        super(Model4, self).__init__(*args, **kwargs)
+
+    def _new_model(self, input_shape):
+        model = Sequential()
+        model.add(Convolution2D(10, 5, 5,
+                                border_mode='valid',
+                                input_shape=input_shape,
+                                ))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(10, 3, 3))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2,2)))
+
+        model.add(Convolution2D(10, 3, 3))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(10, 3, 3))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2,2)))
+
+        model.add(Convolution2D(1, 1, 1))
+        return model
+
+class Model5(CnnModelDecorator):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['input_shape'] = (128, 128, 3)
+        kwargs['output_shape'] = (24, 24)
+        super(Model5, self).__init__(*args, **kwargs)
+
+    def _new_model(self, input_shape):
+        model = Sequential()
+        model.add(Convolution2D(10, 5, 5,
+                                border_mode='valid',
+                                input_shape=input_shape,
+                                ))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(10, 3, 3))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2,2)))
+
+        model.add(Convolution2D(10, 3, 3))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(10, 3, 3))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2,2)))
+
+        model.add(Convolution2D(10, 3, 3))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(10, 3, 3))
+        model.add(Activation('relu'))
+
+        model.add(Convolution2D(1, 1, 1))
+        return model
+
+class Model6(CnnModelDecorator):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['input_shape'] = (128, 128, 3)
+        kwargs['output_shape'] = (24, 24) # ?
+        super(Model5, self).__init__(*args, **kwargs)
+
+    def _new_model(self, input_shape):
+        model = Sequential()
+        model.add(Convolution2D(20, 5, 5,
+                                border_mode='valid',
+                                input_shape=input_shape,
+                                ))
+        model.add(Activation('relu'))
+        model.add(Convolution2D(20, 3, 3))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2,2)))
+
+        model.add(Convolution2D(20, 3, 3))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2,2)))
+
+        model.add(Convolution2D(1, 1, 1))
+        return model
+
 if __name__ == '__main__':
     model_filename = 'test_model'
     config = CnnDirsConfig()
-    model = Model2(config, '100examples', model_filename)
+    model = Model5(config, '100examples', model_filename)
     predicted = model.model.predict_classes(model.X_train)
     print (predicted.shape)
