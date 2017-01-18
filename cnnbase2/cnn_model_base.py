@@ -104,32 +104,84 @@ class CnnModelDecorator(object):
             io.show()
 
         for index in range(self.X_test.shape[0]):
-            im = self.X_test[index,:,:,:]
-            im = exposure.rescale_intensity(im, out_range='float')
-            im = img_as_uint(im)
+            x_img = self.X_test[index,:,:,:]
+            x_img = exposure.rescale_intensity(x_img, out_range='float')
+            x_img = img_as_uint(x_img)
 
-            io.imsave(self.config.model_results_filename('imgs/%d_x_test.png' % index), im)
+            io.imsave(self.config.model_results_filename('imgs/%d_x_test.png' % index), x_img)
 
             n = 3
-            im = np.kron(im, np.ones((n,n,1)))
-            im = exposure.rescale_intensity(im, out_range='float')
-            im = img_as_uint(im)
+            x_img = np.kron(x_img, np.ones((n,n,1)))
+            x_img = exposure.rescale_intensity(x_img, out_range='float')
+            x_img = img_as_uint(x_img)
             print 'shape'
-            print im.shape
-            io.imsave(self.config.model_results_filename('imgs_big/%d_x_test_big.png' % index), im)
+            print x_img.shape
+            io.imsave(self.config.model_results_filename('imgs_big/%d_x_test_big.png' % index), x_img)
 
-            im = predicted_test[index,:,:,0]
-            im = exposure.rescale_intensity(im, out_range='float')
-            im = img_as_uint(im)
+            predicted_img = predicted_test[index,:,:,0]
+            predicted_img = exposure.rescale_intensity(predicted_img, out_range='float')
+            predicted_img = img_as_uint(predicted_img)
+            io.imsave(self.config.model_results_filename('imgs/%d_y_predicted.png' % index), predicted_img)
+            self._save_scaled_gray_img(predicted_img, 'imgs_big/%d_y_predicted_big.png' % index, 8)
 
-            io.imsave(self.config.model_results_filename('imgs/%d_y_predicted.png' % index), im)
+    def show_more_results(self, interactive=False):
+        predicted_test = self.model.predict(self.X_test)
 
-            n = 8
-            im = np.kron(im, np.ones((n,n)))
-            im = exposure.rescale_intensity(im, out_range='float')
-            im = img_as_uint(im)
+        if interactive:
+            index = 0
+            io.imshow(self.X_test[index,:,:,:])
+            io.show()
+            io.imshow(predicted_test[index,:,:,0])
+            io.show()
 
-            io.imsave(self.config.model_results_filename('imgs_big/%d_y_predicted_big.png' % index), im)
+        for index in range(self.X_test.shape[0]):
+            x_img = self.X_test[index,:,:,:]
+            x_img = exposure.rescale_intensity(x_img, out_range='float')
+            self._save_img('imgs/%d_x_test.png' % index, x_img)
+
+            n = 3
+            x_img = np.kron(x_img, np.ones((n,n,1)))
+            x_img = exposure.rescale_intensity(x_img, out_range='float')
+            x_img = img_as_uint(x_img)
+            print 'shape'
+            print x_img.shape
+            io.imsave(self.config.model_results_filename('imgs_big/%d_x_test_big.png' % index), x_img)
+
+            predicted_img = predicted_test[index,:,:,0]
+            predicted_img = exposure.rescale_intensity(predicted_img, out_range='float')
+            predicted_img = img_as_uint(predicted_img)
+            io.imsave(self.config.model_results_filename('imgs/%d_y_predicted.png' % index), predicted_img)
+            predicted_img = self._save_scaled_gray_img(predicted_img, 'imgs_big/%d_y_predicted_big.png' % index, 16)
+
+            x_img2 = x_img.copy()
+            x_img2[:,:,0] = x_img[:,:,0] * predicted_img
+            x_img2[:,:,1] = x_img[:,:,1] * predicted_img
+            x_img2[:,:,2] = x_img[:,:,2] * predicted_img
+            self._save_img('imgs_big/%d_x_by_predicted.png' % index, x_img2)
+
+            expected_img = self.y_test[index,:,:,:]
+            print "expected_img.shape"
+            print expected_img.shape
+            expected_img = self._save_scaled_gray_img(expected_img[:,:,0], 'imgs_big/%d_expected_big.png' % index, 16)
+
+            x_img2 = x_img.copy()
+            x_img2[:,:,0] = x_img[:,:,0] * expected_img
+            x_img2[:,:,1] = x_img[:,:,1] * expected_img
+            x_img2[:,:,2] = x_img[:,:,2] * expected_img
+            self._save_img('imgs_big/%d_x_by_expected.png' % index, x_img2)
+
+    def _save_img(self, img_filename, x_img):
+        x_img_unit = img_as_uint(x_img)
+        io.imsave(self.config.model_results_filename(img_filename), x_img_unit)
+
+    def _save_scaled_gray_img(self, im, img_filename, n):
+        im = np.kron(im, np.ones((n, n)))
+        im = exposure.rescale_intensity(im, out_range='float')
+        im_uint = img_as_uint(im)
+        if im_uint.ndim == 3:
+            im_uint = im_uint[:,:,::n]
+        io.imsave(self.config.model_results_filename(img_filename), im_uint)
+        return im
 
 
 if __name__ == '__main__':

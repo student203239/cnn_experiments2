@@ -37,8 +37,8 @@ if __name__ == '__main__':
     # model2.save_model_to_file()
 
     config = CnnDirsConfig()
-    model_filename = 'learn-on-5000-before-on-1000'
-    model2 = Model5(config, '5000examples', model_filename)
+    model_filename = 'learn-on-8000-before-on-5000'
+    model2 = Model5(config, '8000examples', model_filename)
     model2.load_from_file('learn-on-5000-before-on-1000-epoch580')
     for i in range(30,70):
         history = model2.learn_now(20)
