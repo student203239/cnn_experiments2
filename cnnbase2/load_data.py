@@ -75,16 +75,17 @@ class CnnDataLoader(object):
 
     def get_heat_map_loc(self, hbb_box, return_w, return_h):
         x1, y1, x2, y2, w, h = hbb_box
-        y1 = int(y1*return_w/w)
-        x1 = int(x1*return_w/w)
-        x2 = int(x2*return_w/w)
-        y2 = int(y2*return_w/w)
+        rr = min(1.0*return_h/h, 1.0*return_w/w)
+        y1 = int(y1*rr)
+        x1 = int(x1*rr)
+        x2 = int(x2*rr)
+        y2 = int(y2*rr)
         return x1, y1, x2, y2
 
     def get_heat_map_to_paste(self, x1, y1, x2, y2):
         return tr.resize(self.gaussion_buffer, (y2-y1, x2-x1))
 
-    def load_image_and_hbb_box(self, i, return_w=256, return_h=256):
+    def load_image_and_hbb_box(self, i, return_w=256, return_h=256, move_up=True):
         # im = io.imread(self.image_paths[i], as_grey=True)
         im = io.imread(self.image_paths[i])
         im = im.astype('float32')
@@ -103,14 +104,24 @@ class CnnDataLoader(object):
         # im2 = np.random.rand(w,w,3).astype('float32')
         if h > w:
             im2 = np.zeros((h,h,3), dtype='float32')
-            im2[:,:w,:] = im
+            if move_up:
+                im2[:,:w,:] = im
+            else:
+                im2[:,h-w:,:] = im
             del im
         else:
             im2 = np.zeros((w,w,3), dtype='float32')
-            im2[:h,:,:] = im
+            if move_up:
+                im2[:h,:,:] = im
+            else:
+                im2[w-h:,:,:] = im
             del im
         im = im2
         x1, y1, x2, y2 = self.bb_boxes[i]
+        if not move_up:
+            dy = abs(w-h)
+            y1 += dy
+            y2 += dy
         new_im = tr.resize(im, (return_w, return_h))
         del im
         return new_im, (x1, y1, x2, y2, w, h)
@@ -136,7 +147,7 @@ class CnnDataLoader(object):
         im = tr.resize(im, (return_w, return_h))
         return im, heat_map, (x1, y1, x2, y2, w, h)
 
-    def load_train_and_hbb_box_data(self, test_factor=0.2, w=256, h=256, max_examples=100):
+    def load_train_and_hbb_box_data(self, test_factor=0.2, w=256, h=256, max_examples=100, move_up=True):
         # examples_count = sum(1 if os.path.isfile(image_paths[i]) else 0 for i in range(0, len(image_paths)))
         # examples_count = min(max_examples, examples_count)
         examples_count = max_examples
@@ -149,14 +160,14 @@ class CnnDataLoader(object):
         hbb_box_test = np.zeros((test_size, 6), dtype='int16')
         train_index = 0
         i_range = range(0, len(self.image_paths))
-        shuffle(i_range)
+        # shuffle(i_range)
         for i in  i_range:
             # print i
             if os.path.isfile(self.image_paths[i]):
                 # print 'file ok'
                 print train_index
                 print self.image_paths[i]
-                x, hbb_box = self.load_image_and_hbb_box(i, w, h)
+                x, hbb_box = self.load_image_and_hbb_box(i, w, h, move_up)
                 if train_index < train_size:
                     x_train[train_index,:,:,:] = x.astype('float32')
                     hbb_box_train[train_index,:] = hbb_box
@@ -218,7 +229,7 @@ class GaussianCalc(object):
 
 def show_example2_3():
     loader = CnnDataLoader(CnnDirsConfig())
-    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0, w=128, h=128, max_examples=3)
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0, w=128, h=128, max_examples=3, move_up=False)
     index = 1
     io.imshow(x_train[index,:,:,:])
     io.show()
@@ -272,7 +283,7 @@ class Binary(object):
 
 if __name__ == '__main__':
     print 'started'
-    show_example2_3()
+    # show_example2_3()
     config = CnnDirsConfig()
     loader = CnnDataLoader(config)
     bin = Binary()
@@ -280,8 +291,8 @@ if __name__ == '__main__':
     # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=100)
     # bin.save_pack(config.data_filename('100examples'), x_train, hbb_box_train, x_test, hbb_box_test)
     #
-    # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=1000)
-    # bin.save_pack(config.data_filename('1000examples'), x_train, hbb_box_train, x_test, hbb_box_test)
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=1000, move_up=False)
+    bin.save_pack(config.data_filename('1000examples_down'), x_train, hbb_box_train, x_test, hbb_box_test)
     #
     # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=5000)
     # bin.save_pack(config.data_filename('5000examples'), x_train, hbb_box_train, x_test, hbb_box_test)

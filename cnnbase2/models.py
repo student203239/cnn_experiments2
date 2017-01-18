@@ -160,21 +160,28 @@ class Model6(CnnModelDecorator):
 
     def __init__(self, *args, **kwargs):
         kwargs['input_shape'] = (128, 128, 3)
-        kwargs['output_shape'] = (24, 24) # ?
-        super(Model5, self).__init__(*args, **kwargs)
+        kwargs['output_shape'] = (9, 9)
+        super(Model6, self).__init__(*args, **kwargs)
 
     def _new_model(self, input_shape):
         model = Sequential()
-        model.add(Convolution2D(20, 5, 5,
+        model.add(Convolution2D(25, 5, 5,
                                 border_mode='valid',
                                 input_shape=input_shape,
                                 ))
+        model.add(Convolution2D(25, 3, 3))
+        model.add(Convolution2D(25, 3, 3))
         model.add(Activation('relu'))
-        model.add(Convolution2D(20, 3, 3))
+        model.add(MaxPooling2D(pool_size=(2,2)))
+        model.add(Convolution2D(25, 5, 5))
+        model.add(Convolution2D(25, 3, 3))
+        model.add(Convolution2D(25, 3, 3))
         model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2,2)))
 
-        model.add(Convolution2D(20, 3, 3))
+        model.add(Convolution2D(25, 5, 5))
+        model.add(Convolution2D(25, 3, 3))
+        model.add(Convolution2D(25, 3, 3))
         model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2,2)))
 
@@ -184,6 +191,6 @@ class Model6(CnnModelDecorator):
 if __name__ == '__main__':
     model_filename = 'test_model'
     config = CnnDirsConfig()
-    model = Model5(config, '100examples', model_filename)
+    model = Model6(config, '100examples', model_filename)
     predicted = model.model.predict_classes(model.X_train)
     print (predicted.shape)

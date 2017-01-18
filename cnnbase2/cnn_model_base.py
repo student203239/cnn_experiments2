@@ -68,13 +68,18 @@ class CnnModelDecorator(object):
         examples = src_y.shape[0]
         y = np.zeros((examples,w,h,1), dtype='float32')
         for i in range(examples):
+            if i == 10:
+                print 'ok'
             x1, y1, x2, y2 = loader.get_heat_map_loc(src_y[i], w, h)
             # y[i,y1:y2,x1:x2,0] = loader.get_heat_map_to_paste(x1, y1, x2, y2)
             if y2 > h:
                 y2 = h
             if x2 > w:
                 x2 = w
-            to_paste = tr.resize(loader.gaussion_buffer, (y2 - y1, x2 - x1))
+            try:
+                to_paste = tr.resize(loader.gaussion_buffer, (y2 - y1, x2 - x1))
+            except:
+                raise
             y[i,y1:y2,x1:x2,0] = to_paste
         return y
 
@@ -88,9 +93,10 @@ class CnnModelDecorator(object):
 
     def get_model_filename(self, filename=None):
         filename = filename or self.default_filename
-        filename += '.'
-        filename += self.__class__.__name__
-        filename += '.model'
+        if not filename.endswith("." + self.__class__.__name__ + ".model"):
+            filename += '.'
+            filename += self.__class__.__name__
+            filename += '.model'
         return filename
 
     def show_results(self, interactive=False):
@@ -124,7 +130,7 @@ class CnnModelDecorator(object):
             io.imsave(self.config.model_results_filename('imgs/%d_y_predicted.png' % index), predicted_img)
             self._save_scaled_gray_img(predicted_img, 'imgs_big/%d_y_predicted_big.png' % index, 8)
 
-    def show_more_results(self, interactive=False):
+    def show_more_results(self, interactive=False, prefix=''):
         predicted_test = self.model.predict(self.X_test)
 
         if interactive:
@@ -145,30 +151,30 @@ class CnnModelDecorator(object):
             x_img = img_as_uint(x_img)
             print 'shape'
             print x_img.shape
-            io.imsave(self.config.model_results_filename('imgs_big/%d_x_test_big.png' % index), x_img)
+            io.imsave(self.config.model_results_filename('%simgs_big/%d_x_test_big.png' % (prefix, index)), x_img)
 
             predicted_img = predicted_test[index,:,:,0]
             predicted_img = exposure.rescale_intensity(predicted_img, out_range='float')
             predicted_img = img_as_uint(predicted_img)
-            io.imsave(self.config.model_results_filename('imgs/%d_y_predicted.png' % index), predicted_img)
-            predicted_img = self._save_scaled_gray_img(predicted_img, 'imgs_big/%d_y_predicted_big.png' % index, 16)
+            io.imsave(self.config.model_results_filename('%simgs/%d_y_predicted.png' % (prefix, index)), predicted_img)
+            predicted_img = self._save_scaled_gray_img(predicted_img, '%simgs_big/%d_y_predicted_big.png' % (prefix, index), 16)
 
             x_img2 = x_img.copy()
             x_img2[:,:,0] = x_img[:,:,0] * predicted_img
             x_img2[:,:,1] = x_img[:,:,1] * predicted_img
             x_img2[:,:,2] = x_img[:,:,2] * predicted_img
-            self._save_img('imgs_big/%d_x_by_predicted.png' % index, x_img2)
+            self._save_img('%simgs_big/%d_x_by_predicted.png' % (prefix, index), x_img2)
 
             expected_img = self.y_test[index,:,:,:]
             print "expected_img.shape"
             print expected_img.shape
-            expected_img = self._save_scaled_gray_img(expected_img[:,:,0], 'imgs_big/%d_expected_big.png' % index, 16)
+            expected_img = self._save_scaled_gray_img(expected_img[:,:,0], '%simgs_big/%d_expected_big.png' % (prefix, index), 16)
 
             x_img2 = x_img.copy()
             x_img2[:,:,0] = x_img[:,:,0] * expected_img
             x_img2[:,:,1] = x_img[:,:,1] * expected_img
             x_img2[:,:,2] = x_img[:,:,2] * expected_img
-            self._save_img('imgs_big/%d_x_by_expected.png' % index, x_img2)
+            self._save_img('%simgs_big/%d_x_by_expected.png' % (prefix, index), x_img2)
 
     def _save_img(self, img_filename, x_img):
         x_img_unit = img_as_uint(x_img)
