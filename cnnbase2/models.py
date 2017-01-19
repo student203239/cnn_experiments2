@@ -1,3 +1,5 @@
+from docutils.nodes import subscript
+
 from cnnbase2.cnn_model_base import CnnModelDecorator
 from keras.datasets import mnist
 from keras.models import Sequential
@@ -5,6 +7,7 @@ from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Convolution2D, MaxPooling2D
 from keras.utils import np_utils
 from keras import backend as K
+import numpy as np
 
 from cnnbase2.load_data import CnnDirsConfig
 
@@ -160,7 +163,8 @@ class Model6(CnnModelDecorator):
 
     def __init__(self, *args, **kwargs):
         kwargs['input_shape'] = (128, 128, 3)
-        kwargs['output_shape'] = (9, 9)
+        kwargs['output_shape'] = (11, 11)
+        kwargs['batch_size'] = 312
         super(Model6, self).__init__(*args, **kwargs)
 
     def _new_model(self, input_shape):
@@ -168,25 +172,33 @@ class Model6(CnnModelDecorator):
         model.add(Convolution2D(25, 5, 5,
                                 border_mode='valid',
                                 input_shape=input_shape,
+                                subsample=(2,2)
                                 ))
-        model.add(Convolution2D(25, 3, 3))
-        model.add(Convolution2D(25, 3, 3))
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=(2,2)))
-        model.add(Convolution2D(25, 5, 5))
-        model.add(Convolution2D(25, 3, 3))
         model.add(Convolution2D(25, 3, 3))
         model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2,2)))
 
-        model.add(Convolution2D(25, 5, 5))
-        model.add(Convolution2D(25, 3, 3))
+        model.add(Convolution2D(25, 5, 5, subsample=(2,2)))
         model.add(Convolution2D(25, 3, 3))
         model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=(2,2)))
+        # model.add(MaxPooling2D(pool_size=(2,2)))
+
+        # model.add(Convolution2D(25, 5, 5))
+        # model.add(Convolution2D(25, 3, 3))
+        # model.add(Convolution2D(25, 3, 3))
+        # model.add(Activation('relu'))
+        # model.add(MaxPooling2D(pool_size=(2,2)))
 
         model.add(Convolution2D(1, 1, 1))
         return model
+
+    def hbb_box_to_y(self, src_y, output_shape, loader):
+        w, h = output_shape
+        examples = src_y.shape[0]
+        y = np.zeros((examples,w,h,1), dtype='float32')
+        for i in range(examples):
+            y[i,:,:,0] = loader.create_heat_map_model6(src_y[i], w, h)
+        return y
 
 if __name__ == '__main__':
     model_filename = 'test_model'

@@ -1,6 +1,7 @@
 import math
 import os
 from random import shuffle
+import random
 
 import numpy as np
 import skimage.io as io
@@ -17,6 +18,7 @@ class CnnDirsConfig(object):
         self.model_dir = 'D:/mgr_dir1/model/' # with leart models
         self.model_history_dir = 'D:/mgr_dir1/model_history/'
         self.model_results = 'D:/mgr_dir1/model_results/'
+        self.distractors_dir = 'D:/mgr_dir1/imgs_data/oxc1_100k/distractor/'
 
     def data_filename(self, filename):
         return self.data_dir + filename
@@ -29,6 +31,9 @@ class CnnDirsConfig(object):
 
     def model_results_filename(self, filename):
         return self.model_results + filename
+
+    def distractor_filename(self, filename):
+        return self.distractors_dir + filename
 
 class CnnDataLoader(object):
 
@@ -47,6 +52,9 @@ class CnnDataLoader(object):
         gc = GaussianCalc(0, 0, 256, 256, 0.0)
         g = np.vectorize(gc.f)
         self.gaussion_buffer = np.fromfunction(g, (256, 256), dtype='float32')
+        from os import listdir
+        from os.path import isfile, join
+        self.distractor_filenames = [f for f in listdir(config.distractors_dir) if isfile(join(config.distractors_dir, f)) and ".jpg" in f]
 
     def _load_bb_boxes(self, bb_box_file):
         # Read the bounding boxes
@@ -73,6 +81,23 @@ class CnnDataLoader(object):
         heat_map[y1:y2,x1:x2] = tr.resize(self.gaussion_buffer, (y2-y1, x2-x1))
         return heat_map
 
+    def create_heat_map_model6(self, hbb_box, return_w, return_h):
+        x1, y1, x2, y2 = self.get_heat_map_loc_float(hbb_box, return_w, return_h)
+        if x1 == 0 and y1 == 0 and x2 == 0 and y2 == 0:
+            return np.zeros((return_w, return_h), dtype='float32')
+        gc = GaussianCalc(x1, y1, x2, y2, 0.0, x2-x1, y2-y1, (2,3))
+        g = np.vectorize(gc.f)
+        return np.fromfunction(g, (return_w, return_h), dtype='float32')
+
+    def get_heat_map_loc_float(self, hbb_box, return_w, return_h):
+        x1, y1, x2, y2, w, h = hbb_box
+        rr = min(1.0*return_h/h, 1.0*return_w/w)
+        y1 = (y1*rr)
+        x1 = (x1*rr)
+        x2 = (x2*rr)
+        y2 = (y2*rr)
+        return x1, y1, x2, y2
+
     def get_heat_map_loc(self, hbb_box, return_w, return_h):
         x1, y1, x2, y2, w, h = hbb_box
         rr = min(1.0*return_h/h, 1.0*return_w/w)
@@ -85,38 +110,16 @@ class CnnDataLoader(object):
     def get_heat_map_to_paste(self, x1, y1, x2, y2):
         return tr.resize(self.gaussion_buffer, (y2-y1, x2-x1))
 
+    def load_distractor_and_hbb_box(self, return_w=256, return_h=256):
+        print "DISTRACTOR IMG"
+        index = random.randint(0, len(self.distractor_filenames)-1)
+        h, im, w = self._load_and_square_im(self.config.distractor_filename(self.distractor_filenames[index]), True)
+        new_im = tr.resize(im, (return_w, return_h))
+        return new_im, (0, 0, 0, 0, w, h)
+
     def load_image_and_hbb_box(self, i, return_w=256, return_h=256, move_up=True):
         # im = io.imread(self.image_paths[i], as_grey=True)
-        im = io.imread(self.image_paths[i])
-        im = im.astype('float32')
-        im /= 256
-        print 'im.shape'
-        print im.shape
-        h = im.shape[0]
-        w = im.shape[1]
-        if im.ndim == 2:
-            im_tmp = np.zeros((h,w,3), dtype='float32')
-            im_tmp[:,:,0] = im
-            im_tmp[:,:,1] = im
-            im_tmp[:,:,2] = im
-            del im
-            im = im_tmp
-        # im2 = np.random.rand(w,w,3).astype('float32')
-        if h > w:
-            im2 = np.zeros((h,h,3), dtype='float32')
-            if move_up:
-                im2[:,:w,:] = im
-            else:
-                im2[:,h-w:,:] = im
-            del im
-        else:
-            im2 = np.zeros((w,w,3), dtype='float32')
-            if move_up:
-                im2[:h,:,:] = im
-            else:
-                im2[w-h:,:,:] = im
-            del im
-        im = im2
+        h, im, w = self._load_and_square_im(self.image_paths[i], move_up)
         x1, y1, x2, y2 = self.bb_boxes[i]
         if not move_up:
             dy = abs(w-h)
@@ -125,6 +128,37 @@ class CnnDataLoader(object):
         new_im = tr.resize(im, (return_w, return_h))
         del im
         return new_im, (x1, y1, x2, y2, w, h)
+
+    def _load_and_square_im(self, img_filename, move_up):
+        im = io.imread(img_filename)
+        im = im.astype('float32')
+        im /= 256
+        h = im.shape[0]
+        w = im.shape[1]
+        if im.ndim == 2:
+            im_tmp = np.zeros((h, w, 3), dtype='float32')
+            im_tmp[:, :, 0] = im
+            im_tmp[:, :, 1] = im
+            im_tmp[:, :, 2] = im
+            del im
+            im = im_tmp
+        # im2 = np.random.rand(w,w,3).astype('float32')
+        if h > w:
+            im2 = np.zeros((h, h, 3), dtype='float32')
+            if move_up:
+                im2[:, :w, :] = im
+            else:
+                im2[:, h - w:, :] = im
+            del im
+        else:
+            im2 = np.zeros((w, w, 3), dtype='float32')
+            if move_up:
+                im2[:h, :, :] = im
+            else:
+                im2[w - h:, :, :] = im
+            del im
+        im = im2
+        return h, im, w
 
     def __load_image_and_heat_map(self, i, return_w=256, return_h=256):
         # im = io.imread(self.image_paths[i], as_grey=True)
@@ -147,7 +181,7 @@ class CnnDataLoader(object):
         im = tr.resize(im, (return_w, return_h))
         return im, heat_map, (x1, y1, x2, y2, w, h)
 
-    def load_train_and_hbb_box_data(self, test_factor=0.2, w=256, h=256, max_examples=100, move_up=True):
+    def load_train_and_hbb_box_data(self, test_factor=0.2, w=256, h=256, max_examples=100, move_up=True, distractor_prob=0):
         # examples_count = sum(1 if os.path.isfile(image_paths[i]) else 0 for i in range(0, len(image_paths)))
         # examples_count = min(max_examples, examples_count)
         examples_count = max_examples
@@ -160,14 +194,17 @@ class CnnDataLoader(object):
         hbb_box_test = np.zeros((test_size, 6), dtype='int16')
         train_index = 0
         i_range = range(0, len(self.image_paths))
-        # shuffle(i_range)
+        shuffle(i_range)
         for i in  i_range:
             # print i
             if os.path.isfile(self.image_paths[i]):
                 # print 'file ok'
                 print train_index
                 print self.image_paths[i]
-                x, hbb_box = self.load_image_and_hbb_box(i, w, h, move_up)
+                if random.random() < distractor_prob:
+                    x, hbb_box = self.load_distractor_and_hbb_box(w, h)
+                else:
+                    x, hbb_box = self.load_image_and_hbb_box(i, w, h, move_up)
                 if train_index < train_size:
                     x_train[train_index,:,:,:] = x.astype('float32')
                     hbb_box_train[train_index,:] = hbb_box
@@ -207,16 +244,19 @@ img_path_prefix = 'C:/Users/Jacek/Documents/mgr_sem2/mgr/tmp_imgs/'
 
 class GaussianCalc(object):
 
-    def __init__(self, x1, y1, x2, y2, zero_val):
+    def __init__(self, x1, y1, x2, y2, zero_val, sigma_x=None, sigma_y=None,sigma_factors = (6, 8)):
         self.x1, self.y1, self.x2, self.y2 = x1, y1, x2, y2
         self.zero_val = zero_val
+        self.sigma_x = sigma_x
+        self.sigma_y = sigma_y
+        self.sigma_factors = sigma_factors
 
     def f(self, u, v):
         x1, y1, x2, y2 = self.x1, self.y1, self.x2, self.y2
         if x1 < v and v < x2 and y1 < u and u < y2:
-            sigma_factors = (6, 8)
-            sigma_x = (x2 - x1) / sigma_factors[0]
-            sigma_y = (y2 - y1) / sigma_factors[1]
+            sigma_factors = self.sigma_factors
+            sigma_x = ((x2 - x1) / sigma_factors[0])
+            sigma_y = ((y2 - y1) / sigma_factors[1])
             _2_sigma_x = 2 * sigma_x * sigma_x
             _2_sigma_y = 2 * sigma_y * sigma_y
             def gauss_at(v_factor, u_factor):
@@ -229,12 +269,12 @@ class GaussianCalc(object):
 
 def show_example2_3():
     loader = CnnDataLoader(CnnDirsConfig())
-    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0, w=128, h=128, max_examples=3, move_up=False)
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0, w=128, h=128, max_examples=3, move_up=True, distractor_prob=1)
     index = 1
     io.imshow(x_train[index,:,:,:])
     io.show()
 
-    heat_map = loader.create_heat_map(hbb_box_train[index,:], 128, 128)
+    heat_map = loader.create_heat_map_model6(hbb_box_train[index,:], 9, 9)
 
     io.imshow(heat_map)
     io.show()
@@ -281,18 +321,26 @@ class Binary(object):
         hbb_box_test = self.load_2_dim(pth+'.hbb_test')
         return x_train, hbb_box_train, x_test, hbb_box_test
 
-if __name__ == '__main__':
-    print 'started'
-    # show_example2_3()
+def build_examples_packet(examples, distractor_prob, filename):
     config = CnnDirsConfig()
     loader = CnnDataLoader(config)
     bin = Binary()
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=examples, move_up=True, distractor_prob=distractor_prob)
+    bin.save_pack(config.data_filename(filename), x_train, hbb_box_train, x_test, hbb_box_test)
+
+if __name__ == '__main__':
+    print 'started'
+    # show_example2_3()
+    # config = CnnDirsConfig()
+    # loader = CnnDataLoader(config)
+    # bin = Binary()
+    build_examples_packet(100, 0.4, '100examples_with_dis')
 
     # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=100)
     # bin.save_pack(config.data_filename('100examples'), x_train, hbb_box_train, x_test, hbb_box_test)
     #
-    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=1000, move_up=False)
-    bin.save_pack(config.data_filename('1000examples_down'), x_train, hbb_box_train, x_test, hbb_box_test)
+    # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=1000, move_up=False)
+    # bin.save_pack(config.data_filename('1000examples_down'), x_train, hbb_box_train, x_test, hbb_box_test)
     #
     # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=5000)
     # bin.save_pack(config.data_filename('5000examples'), x_train, hbb_box_train, x_test, hbb_box_test)
