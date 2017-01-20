@@ -131,7 +131,7 @@ class CnnModelDecorator(object):
             self._save_scaled_gray_img(predicted_img, 'imgs_big/%d_y_predicted_big.png' % index, 8)
 
     def show_more_results(self, interactive=False, prefix=''):
-        predicted_test = self.model.predict(self.X_test)
+        predicted_test = self.model.predict(self.X_test, batch_size=32)
 
         if interactive:
             index = 0
@@ -157,7 +157,9 @@ class CnnModelDecorator(object):
             predicted_img = exposure.rescale_intensity(predicted_img, out_range='float')
             predicted_img = img_as_uint(predicted_img)
             io.imsave(self.config.model_results_filename('%simgs/%d_y_predicted.png' % (prefix, index)), predicted_img)
-            predicted_img = self._save_scaled_gray_img(predicted_img, '%simgs_big/%d_y_predicted_big.png' % (prefix, index), 16)
+            predicted_img = self._save_scaled_gray_img(predicted_img, '%simgs_big/%d_y_predicted_big.png' % (prefix, index), 35)
+            h, w, _ = x_img.shape
+            predicted_img = tr.resize(predicted_img, (h, w))
 
             x_img2 = x_img.copy()
             x_img2[:,:,0] = x_img[:,:,0] * predicted_img
@@ -168,7 +170,8 @@ class CnnModelDecorator(object):
             expected_img = self.y_test[index,:,:,:]
             print "expected_img.shape"
             print expected_img.shape
-            expected_img = self._save_scaled_gray_img(expected_img[:,:,0], '%simgs_big/%d_expected_big.png' % (prefix, index), 16)
+            expected_img = self._save_scaled_gray_img(expected_img[:,:,0], '%simgs_big/%d_expected_big.png' % (prefix, index), 35)
+            expected_img = tr.resize(expected_img, (h, w))
 
             x_img2 = x_img.copy()
             x_img2[:,:,0] = x_img[:,:,0] * expected_img

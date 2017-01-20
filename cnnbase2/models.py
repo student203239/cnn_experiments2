@@ -1,4 +1,5 @@
 from docutils.nodes import subscript
+from keras.engine import Layer
 
 from cnnbase2.cnn_model_base import CnnModelDecorator
 from keras.datasets import mnist
@@ -164,7 +165,7 @@ class Model6(CnnModelDecorator):
     def __init__(self, *args, **kwargs):
         kwargs['input_shape'] = (128, 128, 3)
         kwargs['output_shape'] = (11, 11)
-        kwargs['batch_size'] = 312
+        kwargs['batch_size'] = 128
         super(Model6, self).__init__(*args, **kwargs)
 
     def _new_model(self, input_shape):
@@ -200,9 +201,36 @@ class Model6(CnnModelDecorator):
             y[i,:,:,0] = loader.create_heat_map_model6(src_y[i], w, h)
         return y
 
+def copy_sequential(model):
+    layers = model.layers
+    new_model = Sequential()
+    for layer in layers[:-1]:
+        config = layer.get_config()
+        name = config['name']
+        if name.startswith('convolution2d'):
+            conv_layer = Convolution2D.from_config(config)
+            print layer.get_weights()
+            conv_layer.set_weights(layer.get_weights())
+            new_model.add(conv_layer)
+        elif name.startswith('maxpooling2d'):
+            new_model.add(MaxPooling2D.from_config(config))
+        elif name.startswith('activation'):
+            new_model.add(Activation.from_config(config))
+    return new_model
+
 if __name__ == '__main__':
     model_filename = 'test_model'
     config = CnnDirsConfig()
     model = Model6(config, '100examples', model_filename)
+    # model.model = copy_sequential(model.model)
+    model.model.layers.pop() # Get rid of the dropout layer
+    model.model.layers.pop() # Get rid of the dropout layer
+    model.model.layers.pop() # Get rid of the dropout layer
+    model.model.outputs = [model.model.layers[-1].output]
+    model.model.output_layers = [model.model.layers[-1]]
+    model.model.layers[-1].outbound_nodes = []
+    model.model.compile(loss='mean_squared_error',
+                      optimizer='adadelta',
+                      metrics=['accuracy'])
     predicted = model.model.predict_classes(model.X_train)
     print (predicted.shape)
