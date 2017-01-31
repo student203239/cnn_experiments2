@@ -194,7 +194,7 @@ class CnnDataLoader(object):
         hbb_box_test = np.zeros((test_size, 6), dtype='int16')
         train_index = 0
         i_range = range(0, len(self.image_paths))
-        shuffle(i_range)
+        # shuffle(i_range)
         for i in  i_range:
             # print i
             if os.path.isfile(self.image_paths[i]):
@@ -325,7 +325,7 @@ def build_examples_packet(examples, distractor_prob, filename):
     config = CnnDirsConfig()
     loader = CnnDataLoader(config)
     bin = Binary()
-    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=examples, move_up=True, distractor_prob=distractor_prob)
+    x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=1, w=128, h=128, max_examples=examples, move_up=True, distractor_prob=distractor_prob)
     bin.save_pack(config.data_filename(filename), x_train, hbb_box_train, x_test, hbb_box_test)
 
 if __name__ == '__main__':
@@ -334,7 +334,7 @@ if __name__ == '__main__':
     # config = CnnDirsConfig()
     # loader = CnnDataLoader(config)
     # bin = Binary()
-    build_examples_packet(100, 0.4, '100examples_with_dis')
+    build_examples_packet(1000, 0, '1000img')
 
     # x_train, hbb_box_train, x_test, hbb_box_test = loader.load_train_and_hbb_box_data(test_factor=0.1, w=128, h=128, max_examples=100)
     # bin.save_pack(config.data_filename('100examples'), x_train, hbb_box_train, x_test, hbb_box_test)

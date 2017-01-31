@@ -6,9 +6,11 @@ if __name__ == '__main__':
     model_filename = 'learn-on-5000-before-on-1000'
     model_filename = 'run2-epoch580'
     config = CnnDirsConfig()
-    model = Model6(config, '1000examples', model_filename)
+    model = Model6(config, '100examples', model_filename)
     # model = Model6(config, '1000distractors', model_filename)
     model.load_from_file()
+    from keras.utils.visualize_util import  plot
+    plot(model.model, config.model_filename('visualize.png'))
     # print model.model.layers[0].get_config()
     # model.show_results(True)
-    model.show_more_results()
+    # model.show_more_results()

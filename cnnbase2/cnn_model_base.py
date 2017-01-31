@@ -71,6 +71,8 @@ class CnnModelDecorator(object):
             if i == 10:
                 print 'ok'
             x1, y1, x2, y2 = loader.get_heat_map_loc(src_y[i], w, h)
+            if x1 == 0 and y1 == 0 and x2 == 0 and y2 == 0:
+                continue
             # y[i,y1:y2,x1:x2,0] = loader.get_heat_map_to_paste(x1, y1, x2, y2)
             if y2 > h:
                 y2 = h
@@ -191,6 +193,12 @@ class CnnModelDecorator(object):
             im_uint = im_uint[:,:,::n]
         io.imsave(self.config.model_results_filename(img_filename), im_uint)
         return im
+
+    def evaluate_model(self):
+        # train_loss = self.model.evaluate(self.X_train, self.y_train, 312)
+        train_loss = 0
+        test_loss = self.model.evaluate(self.X_test, self.y_test, 312)[0]
+        return train_loss, test_loss
 
 
 if __name__ == '__main__':
