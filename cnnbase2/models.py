@@ -219,18 +219,35 @@ def copy_sequential(model):
     return new_model
 
 if __name__ == '__main__':
-    model_filename = 'test_model'
+    model_filename = 'run2-epoch580' # model6
+    model_filename = 'learn-on-8000-before-on-5000-epoch960' #model5
     config = CnnDirsConfig()
-    model = Model6(config, '100examples', model_filename)
-    # model.model = copy_sequential(model.model)
-    model.model.layers.pop() # Get rid of the dropout layer
-    model.model.layers.pop() # Get rid of the dropout layer
-    model.model.layers.pop() # Get rid of the dropout layer
-    model.model.outputs = [model.model.layers[-1].output]
-    model.model.output_layers = [model.model.layers[-1]]
-    model.model.layers[-1].outbound_nodes = []
-    model.model.compile(loss='mean_squared_error',
-                      optimizer='adadelta',
-                      metrics=['accuracy'])
+    model = Model5(config, '100examples', model_filename)
+    model.load_from_file()
+    layers = model.model.layers
     predicted = model.model.predict_classes(model.X_train)
+
+    for index,layer in enumerate(layers):
+        print "layer {} is {}".format(index, layer)
+
+    print ""
+    for index,layer in enumerate(layers):
+        if isinstance(layer, Convolution2D):
+            W = layer.W.get_value(borrow=True)
+            print "layer {} has dimensions {}".format(index, W.shape)
+    print ""
+
+    img = model.X_train
+    for index,layer in enumerate(layers):
+        get_3rd_layer_output = K.function([layers[0].input, K.learning_phase()],
+                              [layer.output])
+        layer_output = get_3rd_layer_output([img, 0])[0]
+        print "layer {} has layer_output {}".format(index, layer_output.shape)
+
+    W = layers[5].W.get_value(borrow=True)
+
     print (predicted.shape)
+    print "W:"
+    print (W.shape)
+
+    # print "\n".join(dir(layers[5]))
