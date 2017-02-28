@@ -237,17 +237,35 @@ if __name__ == '__main__':
             print "layer {} has dimensions {}".format(index, W.shape)
     print ""
 
-    img = model.X_train
-    for index,layer in enumerate(layers):
-        get_3rd_layer_output = K.function([layers[0].input, K.learning_phase()],
-                              [layer.output])
-        layer_output = get_3rd_layer_output([img, 0])[0]
-        print "layer {} has layer_output {}".format(index, layer_output.shape)
+    img = model.X_train[0:1,:,:,:]
+    # for index,layer in enumerate(layers):
+    #     get_3rd_layer_output = K.function([layers[0].input, K.learning_phase()],
+    #                           [layer.output])
+    #     layer_output = get_3rd_layer_output([img, 0])[0]
+    #     print "layer {} has layer_output {}".format(index, layer_output.shape)
 
     W = layers[5].W.get_value(borrow=True)
 
     print (predicted.shape)
     print "W:"
     print (W.shape)
+
+    print ""
+    print "LateX:"
+
+    for index,layer in enumerate(layers):
+        if isinstance(layer, Convolution2D):
+            W = layer.W.get_value(borrow=True)
+            kw, kh, _, filters = W.shape
+            print "\layerconvv{%d}{%d}{%d}" % (kw, kh, filters)
+        elif isinstance(layer, Activation):
+            print "\layeractivation"
+        else:
+            print "\layverpooling"
+        get_3rd_layer_output = K.function([layers[0].input, K.learning_phase()],
+                              [layer.output])
+        layer_output = get_3rd_layer_output([img, 0])[0]
+        _, w, h, ff = layer_output.shape
+        print "\layerout{%d}{%d}{%d}" % (w, h, ff)
 
     # print "\n".join(dir(layers[5]))
