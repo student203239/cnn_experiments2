@@ -14,11 +14,14 @@ from cnnbase2.load_data import Binary, CnnDataLoader
 
 class CnnModelDecorator(object):
 
-    def __init__(self, config, data_file, default_filename='first_cnn_model.model', input_shape=None, output_shape=None, batch_size=128):
+    def __init__(self, config, data_file, default_filename='first_cnn_model.model', input_shape=None, output_shape=None, batch_size=128, prepared_data=None):
         self.default_filename = default_filename
         self.config = config
         self.batch_size = batch_size
-        self._prepare_train_data(data_file, output_shape)
+        if prepared_data:
+            self.X_train, self.X_test, self.y_train, self.y_test = prepared_data
+        else:
+            self._prepare_train_data(data_file, output_shape)
         self._create_model(input_shape)
 
     def _new_model(self, input_shape):
