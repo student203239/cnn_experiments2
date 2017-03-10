@@ -57,7 +57,9 @@ class FlicLoader(object):
         x_test = np.zeros((test_size, w, h, 3), dtype='float32')
         hbb_box_test = np.zeros((test_size, 6), dtype='int16')
 
-        for i in range(self.mat_len()):
+        r = range(self.mat_len())
+        shuffle(r)
+        for i in r:
             if str(self.istrain(i)) is '0':
                 continue
             src_im_w, image, src_im_h = self._load_and_square_im(self.filepath(i), True)
