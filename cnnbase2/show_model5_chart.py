@@ -16,7 +16,7 @@ if __name__ == '__main__':
     from os.path import isfile, join
     mypath = config.model_dir
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and ".Model6." in f]
-    model = Model6(config, '1000img', "")
+    model = Model6(config, 'flic.valid.07', "")
     epoch_history = {}
     for f in onlyfiles:
         # print f
