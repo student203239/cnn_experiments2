@@ -81,11 +81,11 @@ class CnnModelDecorator(object):
                 y2 = h
             if x2 > w:
                 x2 = w
-            try:
-                to_paste = tr.resize(loader.gaussion_buffer, (y2 - y1, x2 - x1))
-            except:
-                raise
-            y[i,y1:y2,x1:x2,0] = to_paste
+            # try:
+            #     to_paste = tr.resize(loader.gaussion_buffer, (y2 - y1, x2 - x1))
+            # except:
+            #     raise
+            y[i,y1:y2,x1:x2,0] = 1
         return y
 
     def load_from_file(self, filename=None):
