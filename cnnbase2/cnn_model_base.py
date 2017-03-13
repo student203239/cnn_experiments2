@@ -18,11 +18,20 @@ class CnnModelDecorator(object):
         self.default_filename = default_filename
         self.config = config
         self.batch_size = batch_size
+        self.saved_predicted_test = None
         if prepared_data:
             self.X_train, self.X_test, self.y_train, self.y_test = prepared_data
         else:
             self._prepare_train_data(data_file, output_shape)
         self._create_model(input_shape)
+
+    def get_predicted_test(self):
+        if self.saved_predicted_test is None:
+            self.saved_predicted_test = self.model.predict(self.X_test, batch_size=32)
+        return self.saved_predicted_test
+
+    def get_prepared_data(self):
+        return self.X_train, self.X_test, self.y_train, self.y_test
 
     def _new_model(self, input_shape):
         raise Exception("Please impl this method is child class")
@@ -163,26 +172,32 @@ class CnnModelDecorator(object):
             predicted_img = img_as_uint(predicted_img)
             io.imsave(self.config.model_results_filename('%simgs/%d_y_predicted.png' % (prefix, index)), predicted_img)
             predicted_img = self._save_scaled_gray_img(predicted_img, '%simgs_big/%d_y_predicted_big.png' % (prefix, index), 35)
-            h, w, _ = x_img.shape
-            predicted_img = tr.resize(predicted_img, (h, w))
+            # h, w, _ = x_img.shape
+            # predicted_img = tr.resize(predicted_img, (h, w))
 
-            x_img2 = x_img.copy()
-            x_img2[:,:,0] = x_img[:,:,0] * predicted_img
-            x_img2[:,:,1] = x_img[:,:,1] * predicted_img
-            x_img2[:,:,2] = x_img[:,:,2] * predicted_img
+            x_img2 = self.multiply_rgb_img_by_gray_img(predicted_img, x_img)
             self._save_img('%simgs_big/%d_x_by_predicted.png' % (prefix, index), x_img2)
 
             expected_img = self.y_test[index,:,:,:]
             print "expected_img.shape"
             print expected_img.shape
             expected_img = self._save_scaled_gray_img(expected_img[:,:,0], '%simgs_big/%d_expected_big.png' % (prefix, index), 35)
-            expected_img = tr.resize(expected_img, (h, w))
+            # expected_img = tr.resize(expected_img, (h, w))
 
-            x_img2 = x_img.copy()
-            x_img2[:,:,0] = x_img[:,:,0] * expected_img
-            x_img2[:,:,1] = x_img[:,:,1] * expected_img
-            x_img2[:,:,2] = x_img[:,:,2] * expected_img
+            x_img2 = self.multiply_rgb_img_by_gray_img(expected_img, x_img)
             self._save_img('%simgs_big/%d_x_by_expected.png' % (prefix, index), x_img2)
+
+    def multiply_rgb_img_by_gray_img(self, predicted_img, x_img):
+        h, w, _ = x_img.shape
+        if predicted_img.shape[0] != h or predicted_img.shape[0] != w:
+            h, w, _ = x_img.shape
+            predicted_img = tr.resize(predicted_img, (h, w))
+        x_img2 = x_img.copy()
+        x_img2[:, :, 0] = x_img[:, :, 0] * predicted_img
+        x_img2[:, :, 1] = x_img[:, :, 1] * predicted_img
+        x_img2[:, :, 2] = x_img[:, :, 2] * predicted_img
+        x_img2 /= x_img2.max()
+        return x_img2
 
     def _save_img(self, img_filename, x_img):
         x_img_unit = img_as_uint(x_img)

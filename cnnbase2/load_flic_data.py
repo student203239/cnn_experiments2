@@ -26,10 +26,10 @@ class FlicLoader(object):
         g = np.vectorize(gc.f)
         self.gaussion_buffer = np.fromfunction(g, (256, 256), dtype='float32')
 
-    def main(self):
+    def main2(self):
         self.build_examples_packet('flic.valid.07')
 
-    def main2(self):
+    def main(self):
         matlab = self.matlab
         l = len(matlab['examples'][0])
         w, im, h = self._load_and_square_im(self.filepath(99), True)
@@ -91,7 +91,7 @@ class FlicLoader(object):
         result = np.zeros((h, w), dtype='float32')
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
         to_paste = tr.resize(loader.gaussion_buffer, (y2 - y1, x2 - x1))
-        result[y1:y2,x1:x2] = to_paste
+        result[y1:y2,x1:x2] = 1
         return result
 
     def create_y_ones(self, w, h, x1, y1, x2, y2):
