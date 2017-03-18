@@ -11,6 +11,7 @@ class ModelsViewer(object):
     def __init__(self):
         config = CnnDirsConfig()
         self.models = self.create_models(config)
+        # self.models = self.create_models_cars(config)
         self.model = self.models['z']
         # model = Model6(config, '1000distractors', model_filename)
         for m in self.models.values():
@@ -39,6 +40,11 @@ class ModelsViewer(object):
             'c': m5_ones,
             'v': m6_ones,
         }
+
+    def create_models_cars(self, config):
+        m5 = Model5(config, '1000examples', 'learn-on-8000-before-on-5000-epoch960')
+        m6 = Model6(config, '1000examples', 'run2-epoch1120')
+        return {'z': m5, 'x': m6}
 
     def src_img(self, gca):
         src_img = self.get_Src_img()
