@@ -8,14 +8,19 @@ from cnnbase2.models import Model5, Model6
 
 class ModelsViewer(object):
 
-    def __init__(self):
+    def __init__(self, models=None, load_models=True):
         config = CnnDirsConfig()
-        self.models = self.create_models(config)
+        if models:
+            self.models = models
+            print "use predefine models"
+        else:
+            self.models = self.create_models(config)
         # self.models = self.create_models_cars(config)
         self.model = self.models['z']
         # model = Model6(config, '1000distractors', model_filename)
         for m in self.models.values():
-            m.load_from_file()
+            if load_models:
+                m.load_from_file()
             m.get_predicted_test()
         self.key_handlers = {}
         self.key_handlers['1'] = self.src_img
@@ -146,5 +151,5 @@ def onkey(evt):
 #
 # pyplot.plot(Data1)
 # pyplot.show()
-
-ModelsViewer().init_my_canvas()
+if __name__ == '__main__':
+    ModelsViewer().init_my_canvas()
