@@ -39,7 +39,7 @@ class TinyAlexNet(CnnModelDecorator):
 
         model.add(conv_1)
         # model = Model(input=inputs, output=conv_1)
-        # model.load_weights_from_hdf5_group_by_name(file)
+        model.load_weights_from_hdf5_group_by_name(file)
         return model
 
 if __name__ == '__main__':
