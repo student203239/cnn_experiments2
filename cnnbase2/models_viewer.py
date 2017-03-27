@@ -29,10 +29,12 @@ class ModelsViewer(object):
         self.key_handlers['['] = self.next_img
         self.key_handlers[']'] = self.prev_img
         self.key_handlers['m'] = self.change_mul
+        self.key_handlers['\''] = self.next_output_layer
         self.now_show_view = '1'
         self.need_update_view = False
         self.mul_by_src_img = False
         self.index = 99
+        self.output_layer = 0
 
     def create_models(self, config):
         m5_gauss = Model5(config, 'flic.valid.07', 'flic2')
@@ -60,7 +62,8 @@ class ModelsViewer(object):
         return self.model.X_test[self.index, :, :, :]
 
     def predicted_img(self, gca):
-        predicted_img = self.model.get_predicted_test()[self.index, :, :, 0]
+        print self.model.get_predicted_test().shape
+        predicted_img = self.model.get_predicted_test()[self.index, self.output_layer, :, :]
         if self.mul_by_src_img:
             src_img = self.get_Src_img()
             predicted_img = self.model.multiply_rgb_img_by_gray_img(predicted_img, src_img)
@@ -85,6 +88,10 @@ class ModelsViewer(object):
 
     def change_mul(self, gca):
         self.mul_by_src_img = not self.mul_by_src_img
+        self.need_update_view = True
+
+    def next_output_layer(self, gca):
+        self.output_layer += 1
         self.need_update_view = True
 
     def onkey(self, evt):
