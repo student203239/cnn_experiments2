@@ -83,7 +83,7 @@ class FlicLoader(object):
     def build_examples_packet(self, filename):
         config = CnnDirsConfig()
         bin = Binary()
-        x_train, hbb_box_train, x_test, hbb_box_test = self.prepare_data(test_fac = 0.07)
+        x_train, hbb_box_train, x_test, hbb_box_test = self.prepare_data(test_fac = 0.1)
         bin.save_pack(config.data_filename(filename), x_train, hbb_box_train, x_test, hbb_box_test)
 
 

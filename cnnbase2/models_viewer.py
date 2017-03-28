@@ -37,15 +37,20 @@ class ModelsViewer(object):
         self.output_layer = 0
 
     def create_models(self, config):
-        m5_gauss = Model5(config, 'flic.valid.07', 'flic2')
-        m6_gauss = Model6(config, 'flic.valid.07', 'flic2')
-        m5_ones = Model5(config, 'flic.valid.07', 'flic2_ones', prepared_data=m5_gauss.get_prepared_data())
-        m6_ones = Model6(config, 'flic.valid.07', 'flic2_ones', prepared_data=m6_gauss.get_prepared_data())
+        # m5_gauss = Model5(config, 'flic.valid.07', 'flic2')
+        # m6_gauss = Model6(config, 'flic.valid.07', 'flic2')
+        # m5_ones = Model5(config, 'flic.valid.07', 'flic2_ones', prepared_data=m5_gauss.get_prepared_data())
+        # m6_ones = Model6(config, 'flic.valid.07', 'flic2_ones', prepared_data=m6_gauss.get_prepared_data())
+        from cnnbase2.models2 import TinyAlexNet2
+        alex_ones = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones')
+        alex_ones2 = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones_2')
         return {
-            'z': m5_gauss,
-            'x': m6_gauss,
-            'c': m5_ones,
-            'v': m6_ones,
+            # 'z': m5_gauss,
+            # 'x': m6_gauss,
+            # 'c': m5_ones,
+            # 'v': m6_ones,
+            'z': alex_ones,
+            'x': alex_ones2
         }
 
     def create_models_cars(self, config):
