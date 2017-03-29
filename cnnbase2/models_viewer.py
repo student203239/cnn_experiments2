@@ -33,7 +33,7 @@ class ModelsViewer(object):
         self.now_show_view = '1'
         self.need_update_view = False
         self.mul_by_src_img = False
-        self.index = 99
+        self.index = 1
         self.output_layer = 0
 
     def create_models(self, config):
@@ -42,15 +42,16 @@ class ModelsViewer(object):
         # m5_ones = Model5(config, 'flic.valid.07', 'flic2_ones', prepared_data=m5_gauss.get_prepared_data())
         # m6_ones = Model6(config, 'flic.valid.07', 'flic2_ones', prepared_data=m6_gauss.get_prepared_data())
         from cnnbase2.models2 import TinyAlexNet2
-        alex_ones = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones')
-        alex_ones2 = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones_2')
+        from cnnbase2.models2 import TinyAlexNet3
+        # alex_ones = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones')
+        # alex_ones2 = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones_2')
         return {
             # 'z': m5_gauss,
             # 'x': m6_gauss,
             # 'c': m5_ones,
             # 'v': m6_ones,
-            'z': alex_ones,
-            'x': alex_ones2
+            'z': TinyAlexNet3(config, 'flic.100', 'alex2_ones_100'),
+            'x': TinyAlexNet3(config, 'flic.100', 'alex2_ones_100_epoch_30')
         }
 
     def create_models_cars(self, config):
@@ -64,7 +65,7 @@ class ModelsViewer(object):
         self.now_show_view = '1'
 
     def get_Src_img(self):
-        return self.model.X_test[self.index, :, :, :]
+        return self.model.X_train[self.index, :, :, :]
 
     def predicted_img(self, gca):
         print self.model.get_predicted_test().shape

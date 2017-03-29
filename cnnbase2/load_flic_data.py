@@ -27,7 +27,7 @@ class FlicLoader(object):
         self.gaussion_buffer = np.fromfunction(g, (256, 256), dtype='float32')
 
     def main2(self):
-        self.build_examples_packet('flic.valid.07')
+        self.build_examples_packet('flic.200')
 
     def main(self):
         matlab = self.matlab
@@ -44,13 +44,16 @@ class FlicLoader(object):
         io.show()
         print im[:,:,0].shape
         io.imshow(self.create_y(w, h, *self.torsobox(99)))
+        io.imshow(self.create_y(w, h, *self.torsobox(99)))
         io.show()
 
-    def prepare_data(self, w=128, h=128, test_fac = 0.07):
+    def prepare_data(self, w=128, h=128, test_fac = 0.1):
         l = sum(self.istrain(i) for i in range(self.mat_len()))
         index_total = 0
         test_size = int(test_fac*l)
         train_size = l - test_size
+        test_size = 20
+        train_size = 200
 
         x_train = np.zeros((train_size, w, h, 3), dtype='float32')
         hbb_box_train = np.zeros((train_size, 6), dtype='int16')
@@ -58,7 +61,8 @@ class FlicLoader(object):
         hbb_box_test = np.zeros((test_size, 6), dtype='int16')
 
         r = range(self.mat_len())
-        shuffle(r)
+        r = range(train_size + test_size)
+        # shuffle(r)
         for i in r:
             if str(self.istrain(i)) is '0':
                 continue
