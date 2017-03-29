@@ -107,6 +107,28 @@ class CnnDataLoader(object):
         y2 = int(y2*rr)
         return x1, y1, x2, y2
 
+    def hbb_box_to_y(self, src_y, output_shape):
+        w, h = output_shape
+        examples = src_y.shape[0]
+        y = np.zeros((examples,w,h,1), dtype='float32')
+        for i in range(examples):
+            if i == 10:
+                print 'ok'
+            x1, y1, x2, y2 = self.get_heat_map_loc(src_y[i], w, h)
+            if x1 == 0 and y1 == 0 and x2 == 0 and y2 == 0:
+                continue
+            # y[i,y1:y2,x1:x2,0] = loader.get_heat_map_to_paste(x1, y1, x2, y2)
+            if y2 > h:
+                y2 = h
+            if x2 > w:
+                x2 = w
+            # try:
+            #     to_paste = tr.resize(loader.gaussion_buffer, (y2 - y1, x2 - x1))
+            # except:
+            #     raise
+            y[i,y1:y2,x1:x2,0] = 1
+        return y
+
     def get_heat_map_to_paste(self, x1, y1, x2, y2):
         return tr.resize(self.gaussion_buffer, (y2-y1, x2-x1))
 
