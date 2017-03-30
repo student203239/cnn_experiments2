@@ -103,8 +103,8 @@ class CnnDataLoader(object):
         rr = min(1.0*return_h/h, 1.0*return_w/w)
         y1 = int(y1*rr)
         x1 = int(x1*rr)
-        x2 = int(x2*rr)
-        y2 = int(y2*rr)
+        x2 = int(x2*rr+0.5)
+        y2 = int(y2*rr+0.5)
         return x1, y1, x2, y2
 
     def hbb_box_to_y(self, src_y, output_shape):

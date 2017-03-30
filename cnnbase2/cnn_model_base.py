@@ -73,30 +73,8 @@ class CnnModelDecorator(object):
         self.X_train = x_train
         self.X_test = x_test
         loader = CnnDataLoader(self.config)
-        self.y_train = self.hbb_box_to_y(hbb_box_train, output_shape, loader)
-        self.y_test = self.hbb_box_to_y(hbb_box_test, output_shape, loader)
-
-    def hbb_box_to_y(self, src_y, output_shape, loader):
-        w, h = output_shape
-        examples = src_y.shape[0]
-        y = np.zeros((examples,w,h,1), dtype='float32')
-        for i in range(examples):
-            if i == 10:
-                print 'ok'
-            x1, y1, x2, y2 = loader.get_heat_map_loc(src_y[i], w, h)
-            if x1 == 0 and y1 == 0 and x2 == 0 and y2 == 0:
-                continue
-            # y[i,y1:y2,x1:x2,0] = loader.get_heat_map_to_paste(x1, y1, x2, y2)
-            if y2 > h:
-                y2 = h
-            if x2 > w:
-                x2 = w
-            # try:
-            #     to_paste = tr.resize(loader.gaussion_buffer, (y2 - y1, x2 - x1))
-            # except:
-            #     raise
-            y[i,y1:y2,x1:x2,0] = 1
-        return y
+        self.y_train = loader.hbb_box_to_y(hbb_box_train, output_shape)
+        self.y_test = loader.hbb_box_to_y(hbb_box_test, output_shape)
 
     def load_from_file(self, filename=None):
         filename = self.get_model_filename(filename)
@@ -188,7 +166,8 @@ class CnnModelDecorator(object):
             x_img2 = self.multiply_rgb_img_by_gray_img(expected_img, x_img)
             self._save_img('%simgs_big/%d_x_by_expected.png' % (prefix, index), x_img2)
 
-    def multiply_rgb_img_by_gray_img(self, predicted_img, x_img):
+    @staticmethod
+    def multiply_rgb_img_by_gray_img(predicted_img, x_img):
         h, w, _ = x_img.shape
         if predicted_img.shape[0] != h or predicted_img.shape[0] != w:
             h, w, _ = x_img.shape

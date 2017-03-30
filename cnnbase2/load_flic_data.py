@@ -12,7 +12,8 @@ import skimage.transform as tr
 
 from os import fsync, remove
 
-from cnnbase2.load_data import GaussianCalc, CnnDirsConfig, Binary
+from cnnbase2.cnn_model_base import CnnModelDecorator
+from cnnbase2.load_data import GaussianCalc, CnnDirsConfig, Binary, CnnDataLoader
 
 
 class FlicLoader(object):
@@ -26,12 +27,14 @@ class FlicLoader(object):
         g = np.vectorize(gc.f)
         self.gaussion_buffer = np.fromfunction(g, (256, 256), dtype='float32')
 
-    def main2(self):
-        self.build_examples_packet('flic.200')
-
     def main(self):
+        self.build_examples_packet('flic.bound')
+
+    def main3(self):
         matlab = self.matlab
         l = len(matlab['examples'][0])
+        coords = self.coords(99)
+        min_x, max_x, min_y, max_y = min(coords[0][:]), max(coords[0][:]), min(coords[1][:]), max(coords[1][:])
         w, im, h = self._load_and_square_im(self.filepath(99), True)
         im = self._resize_rgb_image(im, 128, 128)
         print str(self.istrain(99)) is '1'
@@ -44,16 +47,28 @@ class FlicLoader(object):
         io.show()
         print im[:,:,0].shape
         io.imshow(self.create_y(w, h, *self.torsobox(99)))
-        io.imshow(self.create_y(w, h, *self.torsobox(99)))
+        # io.show()
+        x1, y1, x2, y2 = self.torsobox(99)
+        loader = CnnDataLoader(CnnDirsConfig())
+        hbb_box = x1, y1, x2, y2, w, h
+        y_train = loader.hbb_box_to_y(np.asarray([hbb_box], 'float32'), (20, 20))[0]
+        io.imshow(y_train[:,:,0])
+        io.show()
+        hbb_box = min_x, min_y, max_x, max_y, w, h
+        y_train = loader.hbb_box_to_y(np.asarray([hbb_box], 'float32'), (30, 30))[0]
+        y_train = tr.resize(y_train, (128, 128))
+        expect_mul_by_img = y_train * im
+        # io.imshow(y_train[:,:,0])
+        io.imshow(expect_mul_by_img)
         io.show()
 
-    def prepare_data(self, w=128, h=128, test_fac = 0.1):
+    def prepare_data(self, w=128, h=128, test_fac = 0.1, only_torso=True):
         l = sum(self.istrain(i) for i in range(self.mat_len()))
         index_total = 0
         test_size = int(test_fac*l)
         train_size = l - test_size
-        test_size = 20
-        train_size = 200
+        # test_size = 20
+        # train_size = 200
 
         x_train = np.zeros((train_size, w, h, 3), dtype='float32')
         hbb_box_train = np.zeros((train_size, 6), dtype='int16')
@@ -68,7 +83,10 @@ class FlicLoader(object):
                 continue
             src_im_w, image, src_im_h = self._load_and_square_im(self.filepath(i), True)
             image = self._resize_rgb_image(image, w, h)
-            x1, y1, x2, y2 = self.torsobox(i)
+            if only_torso:
+                x1, y1, x2, y2 = self.torsobox(i)
+            else:
+                x1, y1, x2, y2 = self.bound_box(i)
             hbb_box = x1, y1, x2, y2, src_im_w, src_im_h
 
             if index_total >= train_size:
@@ -84,10 +102,10 @@ class FlicLoader(object):
                 print "{} / {}".format(index_total, l)
         return x_train, hbb_box_train, x_test, hbb_box_test
 
-    def build_examples_packet(self, filename):
+    def build_examples_packet(self, filename, only_torso=True):
         config = CnnDirsConfig()
         bin = Binary()
-        x_train, hbb_box_train, x_test, hbb_box_test = self.prepare_data(test_fac = 0.1)
+        x_train, hbb_box_train, x_test, hbb_box_test = self.prepare_data(test_fac = 0.1, only_torso=only_torso)
         bin.save_pack(config.data_filename(filename), x_train, hbb_box_train, x_test, hbb_box_test)
 
 
@@ -117,10 +135,18 @@ class FlicLoader(object):
     def istest(self, i):
         return self.matlab['examples'][0]['istest'][i][0][0]
 
+    def coords(self, i):
+        return self.matlab['examples'][0]['coords'][i]
+
     def torsobox(self, i):
         t = self.matlab['examples'][0]['torsobox'][i][0]
         # return t[0], t[1], t[2], t[3]
         return int(t[0]), int(t[1]), int(t[2]), int(t[3])
+
+    def bound_box(self, i):
+        coords = self.coords(i)
+        min_x, max_x, min_y, max_y = min(coords[0][:]), max(coords[0][:]), min(coords[1][:]), max(coords[1][:])
+        return min_x, max_x, min_y, max_y
 
     def _load_and_square_im(self, img_filename, move_up):
         im = io.imread(img_filename)
