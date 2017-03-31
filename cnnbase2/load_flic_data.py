@@ -28,7 +28,7 @@ class FlicLoader(object):
         self.gaussion_buffer = np.fromfunction(g, (256, 256), dtype='float32')
 
     def main(self):
-        self.build_examples_packet('flic.bound', only_torso=False)
+        self.build_examples_packet('flic.bound.shuffle', only_torso=False)
 
     def main3(self):
         matlab = self.matlab
@@ -78,7 +78,7 @@ class FlicLoader(object):
 
         r = range(self.mat_len())
         # r = range(train_size + test_size)
-        # shuffle(r)
+        shuffle(r)
         for i in r:
             if str(self.istrain(i)) is '0':
                 continue

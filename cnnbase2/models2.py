@@ -51,7 +51,7 @@ class TinyAlexNet(CnnModelDecorator):
     def _add_more_layers_to_model(self, model):
         pass
 
-    def learn_now(self, nb_epoch=12, initial_epoch=0):
+    def learn_now(self, nb_epoch=12, initial_epoch=1):
         history = self.model.fit(self.X_train.transpose((0,3,1,2)), self.y_train.transpose((0,3,1,2)), batch_size=self.batch_size, nb_epoch=nb_epoch,
           verbose=1, validation_data=(self.X_test.transpose((0,3,1,2)), self.y_test.transpose((0,3,1,2))))
         self.save_history(history)

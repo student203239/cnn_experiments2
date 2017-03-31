@@ -1,3 +1,5 @@
+import datetime
+import os
 
 from keras.datasets import mnist
 from keras.models import Sequential
@@ -51,22 +53,41 @@ class CnnModelDecorator(object):
         return history
 
     def save_history(self, history):
-        filename = self.get_model_filename()
-        filename = self.config.model_history_filename(filename)
+        model_filename = self.get_model_filename()
+        self.last_history_timestamp = self._get_timestamp()
+        filename_timestamp = self.config.model_history_filename(model_filename + '.' + self.last_history_timestamp)
         columns = ['acc', 'loss', 'val_acc', 'val_loss']
-        # hh = history.history
-        # history.epoch
+        self._history_txt_to_file(filename_timestamp, history)
+        # zapisz tez do cvs zbiorczego z sufix 'acumulate', przed pisaniem spr czy istnieje, czy rozmiar pliku == 0, jesli trzeba dopisz naglowki kolumn csv
+        cols_vals = [history.epoch]
+        for c in columns:
+            cols_vals.append(history.history[c])
+        self._history_to_csv_file(cols_vals, columns, filename_timestamp, print_columns_headers=True, acumulate=False)
+        filename_acumulate = self.config.model_history_filename(model_filename + '.acumulate')
+        print_columns_headers = not os.path.exists(filename_acumulate + '.csv')
+        print "filename_acumulate: " + str(filename_acumulate)
+        print "print_columns_headers: " + str(print_columns_headers)
+        self._history_to_csv_file(cols_vals, columns, filename_acumulate, print_columns_headers, acumulate=True)
+
+
+    def _history_to_csv_file(self, cols_vals, columns, filename, print_columns_headers, acumulate=False):
+        mode = 'w+'
+        if acumulate:
+            mode = 'a'
+        with open(filename + '.csv', mode) as f:
+            if print_columns_headers:
+                f.write(";".join(['epoch'] + columns) + '\n')
+            for p in zip(*cols_vals):
+                f.write(";".join([str(x) for x in p]) + '\n')
+
+    def _history_txt_to_file(self, filename, history):
         with open(filename + '.txt', 'w+') as f:
             f.write("SRC:\n")
             f.write(str(history.history) + '\n')
             f.write(str(history.epoch) + '\n')
-        with open(filename + '.csv', 'w+') as f:
-            cols_vals = [history.epoch]
-            for c in columns:
-                cols_vals.append(history.history[c])
-            f.write(";".join(['epoch'] + columns) + '\n')
-            for p in zip(*cols_vals):
-                f.write(";".join([str(x) for x in p]) + '\n')
+
+    def _get_timestamp(self):
+        return "{:%Y-%m-%d--%H-%M-%S}".format(datetime.datetime.now())
 
     def _prepare_train_data(self, data_file, output_shape):
         x_train, hbb_box_train, x_test, hbb_box_test = Binary().load_pack(self.config.data_filename(data_file))
