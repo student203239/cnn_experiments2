@@ -46,12 +46,13 @@ class ModelsViewer(object):
         # alex_ones = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones')
         # alex_ones2 = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones_2')
         return {
-            # 'z': m5_gauss,
+            'z': TinyAlexNet2(config, 'flic.bound', 'alex1_ones'),
+            'x': TinyAlexNet3(config, 'flic.bound', 'alex_ones')
             # 'x': m6_gauss,
             # 'c': m5_ones,
             # 'v': m6_ones,
-            'z': TinyAlexNet3(config, 'flic.100', 'alex2_ones_100'),
-            'x': TinyAlexNet3(config, 'flic.100', 'alex2_ones_100_epoch_30')
+            # 'z': TinyAlexNet3(config, 'flic.100', 'alex2_ones_100'),
+            # 'x': TinyAlexNet3(config, 'flic.100', 'alex2_ones_100_epoch_30')
         }
 
     def create_models_cars(self, config):
@@ -65,7 +66,7 @@ class ModelsViewer(object):
         self.now_show_view = '1'
 
     def get_Src_img(self):
-        return self.model.X_train[self.index, :, :, :]
+        return self.model.X_test[self.index, :, :, :]
 
     def predicted_img(self, gca):
         print self.model.get_predicted_test().shape
