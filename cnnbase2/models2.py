@@ -102,20 +102,20 @@ class TinyAlexNet3(TinyAlexNet):
 
     def __init__(self, *args, **kwargs):
         kwargs['input_shape'] = (128, 128, 3)
-        kwargs['output_shape'] = (19, 19)
-        kwargs['batch_size'] = 128
+        kwargs['output_shape'] = (14, 14)
+        kwargs['batch_size'] = 50
         super(TinyAlexNet3, self).__init__(*args, **kwargs)
 
     def _add_more_layers_to_model(self, model):
         model.add(MaxPooling2D((3, 3), strides=(2,2), dim_ordering='th'))
-        model.add(Convolution2D(256, 5, 5, dim_ordering='th', activation='relu'))
+        model.add(Convolution2D(256, 5, 5, dim_ordering='th', border_mode='same', activation='relu'))
         # model.add(Convolution2D(256, 3, 3, dim_ordering='th'))
         # model.add(SpatialDropout2D(0.5, dim_ordering='th'))
         model.add(Convolution2D(356, 3, 3, dim_ordering='th', border_mode='same', activation='relu'))
         model.add(BatchNormalization(axis=1))
         model.add(SpatialDropout2D(0.7, dim_ordering='th'))
         model.add(MaxPooling2D((2, 2), dim_ordering='th'))
-        model.add(Convolution2D(20, 5, 5, dim_ordering='th', border_mode='same', activation='relu'))
+        model.add(Convolution2D(200, 5, 5, dim_ordering='th', border_mode='same', activation='relu'))
         model.add(BatchNormalization(axis=1))
             # model.add(Convolution2D(130, 3, 3, dim_ordering='th'))
         model.add(SpatialDropout2D(0.5, dim_ordering='th'))

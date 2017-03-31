@@ -28,27 +28,28 @@ class FlicLoader(object):
         self.gaussion_buffer = np.fromfunction(g, (256, 256), dtype='float32')
 
     def main(self):
-        self.build_examples_packet('flic.bound')
+        self.build_examples_packet('flic.bound', only_torso=False)
 
     def main3(self):
         matlab = self.matlab
         l = len(matlab['examples'][0])
-        coords = self.coords(99)
+        index = 10
+        coords = self.coords(index)
         min_x, max_x, min_y, max_y = min(coords[0][:]), max(coords[0][:]), min(coords[1][:]), max(coords[1][:])
-        w, im, h = self._load_and_square_im(self.filepath(99), True)
+        w, im, h = self._load_and_square_im(self.filepath(index), True)
         im = self._resize_rgb_image(im, 128, 128)
-        print str(self.istrain(99)) is '1'
+        print str(self.istrain(index)) is '1'
         print w, h
         print str(im)
         print str(im.shape)
-        print self.torsobox(99)
-        x1, y1, x2, y2 = self.torsobox(99)
+        print self.torsobox(index)
+        x1, y1, x2, y2 = self.torsobox(index)
         io.imshow(im)
         io.show()
         print im[:,:,0].shape
-        io.imshow(self.create_y(w, h, *self.torsobox(99)))
+        io.imshow(self.create_y(w, h, *self.torsobox(index)))
         # io.show()
-        x1, y1, x2, y2 = self.torsobox(99)
+        x1, y1, x2, y2 = self.torsobox(index)
         loader = CnnDataLoader(CnnDirsConfig())
         hbb_box = x1, y1, x2, y2, w, h
         y_train = loader.hbb_box_to_y(np.asarray([hbb_box], 'float32'), (20, 20))[0]
@@ -76,18 +77,25 @@ class FlicLoader(object):
         hbb_box_test = np.zeros((test_size, 6), dtype='int16')
 
         r = range(self.mat_len())
-        r = range(train_size + test_size)
+        # r = range(train_size + test_size)
         # shuffle(r)
         for i in r:
             if str(self.istrain(i)) is '0':
                 continue
             src_im_w, image, src_im_h = self._load_and_square_im(self.filepath(i), True)
             image = self._resize_rgb_image(image, w, h)
+            # io.imshow(image)
+            # io.show()
             if only_torso:
                 x1, y1, x2, y2 = self.torsobox(i)
             else:
                 x1, y1, x2, y2 = self.bound_box(i)
+            if math.isnan(x1) or math.isnan(y1) or math.isnan(x2) or math.isnan(y2):
+                print 'bad'
+                raise Exception("Nan")
             hbb_box = x1, y1, x2, y2, src_im_w, src_im_h
+            if src_im_w == 0 or src_im_h == 0:
+                raise Exception('xx')
 
             if index_total >= train_size:
                 index = index_total - train_size
@@ -97,6 +105,13 @@ class FlicLoader(object):
                 index = index_total
                 x_train[index,:,:,:] = image
                 hbb_box_train[index,:] = hbb_box
+
+                # loader = CnnDataLoader(CnnDirsConfig())
+                # one_box_array = hbb_box_train[index:index+1, :]
+                # y_trains = loader.hbb_box_to_y(one_box_array, (20, 20))
+                # y_train = y_trains[0]
+                # io.imshow(y_train[:,:,0])
+                # io.show()
             index_total += 1
             if index_total % 10 == 1:
                 print "{} / {}".format(index_total, l)
@@ -143,10 +158,15 @@ class FlicLoader(object):
         # return t[0], t[1], t[2], t[3]
         return int(t[0]), int(t[1]), int(t[2]), int(t[3])
 
+    def remove_nans(self, a):
+        return [x for x in a if not math.isnan(x)]
+
     def bound_box(self, i):
         coords = self.coords(i)
-        min_x, max_x, min_y, max_y = min(coords[0][:]), max(coords[0][:]), min(coords[1][:]), max(coords[1][:])
-        return min_x, max_x, min_y, max_y
+        coords_x  = self.remove_nans(coords[0])
+        coords_y  = self.remove_nans(coords[1])
+        min_x, max_x, min_y, max_y = min(coords_x), max(coords_x), min(coords_y), max(coords_y)
+        return min_x, min_y, max_x, max_y
 
     def _load_and_square_im(self, img_filename, move_up):
         im = io.imread(img_filename)
