@@ -46,8 +46,9 @@ class ModelsViewer(object):
         # alex_ones = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones')
         # alex_ones2 = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones_2')
         return {
-            'z': TinyAlexNet2(config, 'flic.bound', 'alex1_ones'),
-            'x': TinyAlexNet3(config, 'flic.bound', 'alex_ones')
+            # 'z': TinyAlexNet2(config, 'flic.bound', 'alex1_ones'),
+            'z': TinyAlexNet3(config, 'flic.bound', 'alex_ones'),
+            'x': TinyAlexNet3(config, 'flic.bound', 'alex_ones_after60.e150.2017-04-01--17-49-23')
             # 'x': m6_gauss,
             # 'c': m5_ones,
             # 'v': m6_ones,

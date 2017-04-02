@@ -8,13 +8,12 @@ from cnnbase2.models2 import TinyAlexNet2, TinyAlexNet3
 
 if __name__ == '__main__':
     config = CnnDirsConfig()
-    filename = 'alex_ones_debug'
-    # model2 = TinyAlexNet3(config, 'flic.bound', filename)
-    model2 = TinyAlexNet3(config, 'flic.100', filename)
+    filename = 'alex_ones_after60'
+    model2 = TinyAlexNet3(config, 'flic.bound', filename)
     model2.load_from_file('alex_ones')
-    epoch_pack = 2
+    epoch_pack = 15
     init_epoch = 60
-    for ei in range(10):
+    for ei in range(6):
         model2.learn_now(epoch_pack)
         epoch = init_epoch + (ei+1) * epoch_pack
         model2.save_model_to_file(filename + ('.e%d.'%epoch) + model2.last_history_timestamp)
@@ -32,5 +31,5 @@ if __name__ == '__main__':
     # model2.learn_now(120)
     # model2.save_model_to_file()
     #
-    # time.sleep(30)
-    # os.system("shutdown.exe /f /h")
+    time.sleep(30)
+    os.system("shutdown.exe /f /h")
