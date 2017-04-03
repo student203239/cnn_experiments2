@@ -59,16 +59,17 @@ class MarginExperiements1(object):
 
         self._paste_into(oy1, iy1, ox1, ix1, self.radial)
         self._paste_into(iy2, oy2, ox1, ix1, self.radial, lambda a: a[::-1,:])
-        self._paste_into(iy2, oy2, ix2, ox2, self.radial, lambda a: a[::-1,::-1])
-        self._paste_into(oy1, iy1, ix2, ox2, self.radial, lambda a: a[:,::-1])
+        self._paste_into(iy2, oy2, ix2-1, ox2, self.radial, lambda a: a[::-1,::-1])  # needs workaround
+        self._paste_into(oy1, iy1, ix2-1, ox2, self.radial, lambda a: a[:,::-1])  # needs workaround
 
-        self._paste_into(iy1, iy2, ix2, ox2, self.horizontal_gradient, lambda a: a[:,::-1])
+        self._paste_into(iy1, iy2, ix2-1, ox2, self.horizontal_gradient, lambda a: a[:,::-1])  # needs workaround
         self._paste_into(iy1, iy2, ox1, ix1, self.horizontal_gradient)
-
         self._paste_into(oy1, iy1, ix1, ix2, self.horizontal_gradient, trans=True)
         self._paste_into(iy2, oy2, ix1, ix2, self.horizontal_gradient, lambda a: a[::-1,:], trans=True)
 
     def _paste_into(self, y1, y2, x1, x2, img, post_lambda=None, trans=False):
+        if y1 == y2 or x1 == x2:
+            return
         target_shape = (y2 - y1, x2 - x1)
         if trans:
             target_shape = (x2 - x1, y2 - y1)
