@@ -14,6 +14,7 @@ from os import fsync, remove
 
 from cnnbase2.cnn_model_base import CnnModelDecorator
 from cnnbase2.load_data import GaussianCalc, CnnDirsConfig, Binary, CnnDataLoader
+from cnnbase2.masks.small_masks_experiments import SmallMaskGen
 
 
 class FlicLoader(object):
@@ -28,7 +29,7 @@ class FlicLoader(object):
         self.gaussion_buffer = np.fromfunction(g, (256, 256), dtype='float32')
 
     def main(self):
-        self.build_examples_packet('flic.bound.shuffle', only_torso=False)
+        self.build_examples_packet('flic.shuffle.code10', to_hbb_box=self.to_hbb_box_10)
 
     def main3(self):
         matlab = self.matlab
@@ -63,7 +64,8 @@ class FlicLoader(object):
         io.imshow(expect_mul_by_img)
         io.show()
 
-    def prepare_data(self, w=128, h=128, test_fac = 0.1, only_torso=True):
+    def prepare_data(self, w=128, h=128, test_fac = 0.1, to_hbb_box=None):
+        to_hbb_box = to_hbb_box or self.to_hbb_box_torso
         l = sum(self.istrain(i) for i in range(self.mat_len()))
         index_total = 0
         test_size = int(test_fac*l)
@@ -72,9 +74,10 @@ class FlicLoader(object):
         # train_size = 200
 
         x_train = np.zeros((train_size, w, h, 3), dtype='float32')
-        hbb_box_train = np.zeros((train_size, 6), dtype='int16')
+        hbb_size = len(to_hbb_box(0, 100, 100))
+        hbb_box_train = np.zeros((train_size, hbb_size), dtype='int16')
         x_test = np.zeros((test_size, w, h, 3), dtype='float32')
-        hbb_box_test = np.zeros((test_size, 6), dtype='int16')
+        hbb_box_test = np.zeros((test_size, hbb_size), dtype='int16')
 
         r = range(self.mat_len())
         # r = range(train_size + test_size)
@@ -86,16 +89,7 @@ class FlicLoader(object):
             image = self._resize_rgb_image(image, w, h)
             # io.imshow(image)
             # io.show()
-            if only_torso:
-                x1, y1, x2, y2 = self.torsobox(i)
-            else:
-                x1, y1, x2, y2 = self.bound_box(i)
-            if math.isnan(x1) or math.isnan(y1) or math.isnan(x2) or math.isnan(y2):
-                print 'bad'
-                raise Exception("Nan")
-            hbb_box = x1, y1, x2, y2, src_im_w, src_im_h
-            if src_im_w == 0 or src_im_h == 0:
-                raise Exception('xx')
+            hbb_box = to_hbb_box(i, src_im_w, src_im_h)
 
             if index_total >= train_size:
                 index = index_total - train_size
@@ -117,10 +111,21 @@ class FlicLoader(object):
                 print "{} / {}".format(index_total, l)
         return x_train, hbb_box_train, x_test, hbb_box_test
 
-    def build_examples_packet(self, filename, only_torso=True):
+    def to_hbb_box_torso(self, i, src_im_w, src_im_h):
+        x1, y1, x2, y2 = self.torsobox(i)
+        return
+
+    def to_hbb_box_bound_box(self, i, src_im_w, src_im_h):
+        x1, y1, x2, y2 = self.bound_box(i)
+        return
+
+    def to_hbb_box_10(self, i, src_im_w, src_im_h):
+        return SmallMaskGen.code_10(self.torsobox(i), self.bound_box(i), src_im_w, src_im_h)
+
+    def build_examples_packet(self, filename, to_hbb_box):
         config = CnnDirsConfig()
         bin = Binary()
-        x_train, hbb_box_train, x_test, hbb_box_test = self.prepare_data(test_fac = 0.1, only_torso=only_torso)
+        x_train, hbb_box_train, x_test, hbb_box_test = self.prepare_data(test_fac = 0.1, to_hbb_box=to_hbb_box)
         bin.save_pack(config.data_filename(filename), x_train, hbb_box_train, x_test, hbb_box_test)
 
 

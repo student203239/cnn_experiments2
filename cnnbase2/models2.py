@@ -103,7 +103,7 @@ class TinyAlexNet3(TinyAlexNet):
     def __init__(self, *args, **kwargs):
         kwargs['input_shape'] = (128, 128, 3)
         kwargs['output_shape'] = (14, 14)
-        kwargs['batch_size'] = 50
+        kwargs['batch_size'] = 64
         super(TinyAlexNet3, self).__init__(*args, **kwargs)
 
     def _add_more_layers_to_model(self, model):

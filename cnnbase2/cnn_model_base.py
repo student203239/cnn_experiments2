@@ -12,6 +12,7 @@ import numpy as np
 from skimage import io, exposure, img_as_uint, img_as_float
 
 from cnnbase2.load_data import Binary, CnnDataLoader
+from cnnbase2.masks.small_masks_experiments import SmallMaskGen
 
 
 class CnnModelDecorator(object):
@@ -93,9 +94,19 @@ class CnnModelDecorator(object):
         x_train, hbb_box_train, x_test, hbb_box_test = Binary().load_pack(self.config.data_filename(data_file))
         self.X_train = x_train
         self.X_test = x_test
+        self.y_train, self.y_test = self._create_y_train_y_test(hbb_box_train, hbb_box_test, output_shape)
+
+    def _create_y_train_y_test(self, hbb_box_train, hbb_box_test, output_shape):
         loader = CnnDataLoader(self.config)
-        self.y_train = loader.hbb_box_to_y(hbb_box_train, output_shape)
-        self.y_test = loader.hbb_box_to_y(hbb_box_test, output_shape)
+        def saved_data_to_y(data):
+            shape = data.shape
+            if shape[1] == 6:
+                return loader.hbb_box_to_y(data, output_shape)
+            if shape[1] == 10:
+                return SmallMaskGen.hbb_box_to_y(data, output_shape)
+        y_train = saved_data_to_y(hbb_box_train)
+        y_test = saved_data_to_y(hbb_box_test)
+        return y_train, y_test
 
     def load_from_file(self, filename=None):
         filename = self.get_model_filename(filename)

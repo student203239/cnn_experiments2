@@ -55,7 +55,6 @@ class MarginExperiements1(object):
         ox1, oy1, ox2, oy2 = outter
         self.buffer[oy1:oy2, ox1:ox2] = 0.2
         ix1, iy1, ix2, iy2 = inner
-        self.buffer[iy1:iy2, ix1:ix2] = 1
 
         self._paste_into(oy1, iy1, ox1, ix1, self.radial)
         self._paste_into(iy2, oy2, ox1, ix1, self.radial, lambda a: a[::-1,:])
@@ -66,6 +65,8 @@ class MarginExperiements1(object):
         self._paste_into(iy1, iy2, ox1, ix1, self.horizontal_gradient)
         self._paste_into(oy1, iy1, ix1, ix2, self.horizontal_gradient, trans=True)
         self._paste_into(iy2, oy2, ix1, ix2, self.horizontal_gradient, lambda a: a[::-1,:], trans=True)
+
+        self.buffer[iy1:iy2+1, ix1:ix2+1] = 1
 
     def _paste_into(self, y1, y2, x1, x2, img, post_lambda=None, trans=False):
         if y1 == y2 or x1 == x2:
@@ -88,8 +89,20 @@ def main1():
     io.imshow(me.buffer)
     io.show()
 
+def main2():
+    f=1
+    me = MarginExperiements1(14*f, 14*f)
+    inner = 5*f, 5*f, 8*f, 7*f
+    outter = 5*f, 4*f, 9*f, 9*f
+    me.create_margin(inner, outter)
+    buffer = me.buffer
+    if f > 1:
+        buffer = tr.resize(buffer, (14, 14))
+    io.imshow(buffer)
+    io.show()
+
 if __name__ == '__main__':
-    main1()
+    main2()
     # print 'run masks experimests'
     # horizontal_gradient_buffer = HorizontalGradientGen(100, 100).gen_buffer()
     # io.imshow(horizontal_gradient_buffer)
