@@ -40,6 +40,7 @@ while(cap.isOpened()):
     # cv2.imshow('frame', f2)
     # if cv2.waitKey(1) & 0xFF == ord('q'):
     #     break
+cap.release()
 print "Done reading video"
 config = CnnDirsConfig()
 model = TinyAlexNet4(config, None, 'alex_code10')
@@ -50,34 +51,22 @@ frame_time = 1.0 / fps
 # kth = 160
 print "Save video"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('output.avi',fourcc, fps, (128,128))
+out_resolution = (600, 600)
+out = cv2.VideoWriter('output.avi',fourcc, fps, out_resolution)
+cap = cv2.VideoCapture(filename)
 for i in range(frame_index):
     start_time = time.time()
     y = predicted[i,0,:,:]
     y[y<=0.25] = 0
-    # y_smallest_indx = np.argpartition(y, kth, axis=None)
-    # x_i, y_i = np.unravel_index(y_smallest_indx[:kth], y.shape)
-    # y[x_i, y_i] = 0
-    img_mul = model.multiply_rgb_img_by_gray_img(y, model_input[i,:,:,:], advanced_resize=True)
-    # img = np.kron(img, np.ones((10, 10)))
-
-    # plt.figure()
-    # plt.hist(y)
-    # plt.title("test")
-    # buf = io.BytesIO()
-    # plt.savefig(buf, format='raw')
-    # buf.seek(0)
-    # img_np = cv2.imdecode(np.fromstring(buf.getvalue(), dtype=np.uint8), cv2.IMREAD_COLOR)
-    # buf.close()
-    # plt.clf()
-    # plt.cla()
-    # img_mul = img_np
+    ret, src_frame = cap.read()
+    h, src_frame_sq, w = ImgUtlis.make_img_square(src_frame, move_up=True)
+    src_frame_sq = ImgUtlis.resize_rgb_image(src_frame_sq, *out_resolution)
+    img_mul = model.multiply_rgb_img_by_gray_img(y, src_frame_sq, advanced_resize=True)
 
     cv2.imshow('frame', img_mul)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
     out.write(img_as_ubyte(img_mul))
-    print "done ", i
     # to_sleep = frame_time - (time.time() - start_time)
     # if to_sleep > 0:
     #     time.sleep(to_sleep)
@@ -96,3 +85,23 @@ cv2.destroyAllWindows()
 # im = Image.open(buf)
 # im.show()
 # buf.close()
+
+def make_hist():
+    pass
+    # plt.figure()
+    # plt.hist(y)
+    # plt.title("test")
+    # buf = io.BytesIO()
+    # plt.savefig(buf, format='raw')
+    # buf.seek(0)
+    # img_np = cv2.imdecode(np.fromstring(buf.getvalue(), dtype=np.uint8), cv2.IMREAD_COLOR)
+    # buf.close()
+    # plt.clf()
+    # plt.cla()
+    # img_mul = img_np
+
+def remove_smallest_vals():
+    pass
+    # y_smallest_indx = np.argpartition(y, kth, axis=None)
+    # x_i, y_i = np.unravel_index(y_smallest_indx[:kth], y.shape)
+    # y[x_i, y_i] = 0
