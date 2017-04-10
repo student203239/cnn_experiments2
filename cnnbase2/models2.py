@@ -124,6 +124,32 @@ class TinyAlexNet3(TinyAlexNet):
     def _get_conv1_sub_sample(self):
         return (2, 2)
 
+class TinyAlexNet4(TinyAlexNet):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['input_shape'] = (128, 128, 3)
+        kwargs['output_shape'] = (14, 14)
+        kwargs['batch_size'] = 64
+        super(TinyAlexNet4, self).__init__(*args, **kwargs)
+
+    def _add_more_layers_to_model(self, model):
+        model.add(MaxPooling2D((3, 3), strides=(2,2), dim_ordering='th'))
+        model.add(Convolution2D(256, 5, 5, dim_ordering='th', border_mode='same', activation='relu'))
+        # model.add(Convolution2D(256, 3, 3, dim_ordering='th'))
+        # model.add(SpatialDropout2D(0.5, dim_ordering='th'))
+        model.add(Convolution2D(356, 3, 3, dim_ordering='th', border_mode='same', activation='relu'))
+        model.add(SpatialDropout2D(0.7, dim_ordering='th'))
+        model.add(BatchNormalization(axis=1))
+        model.add(MaxPooling2D((2, 2), dim_ordering='th'))
+        model.add(Convolution2D(200, 5, 5, dim_ordering='th', border_mode='same', activation='relu'))
+        model.add(SpatialDropout2D(0.5, dim_ordering='th'))
+        model.add(BatchNormalization(axis=1))
+            # model.add(Convolution2D(130, 3, 3, dim_ordering='th'))
+        model.add(Convolution2D(1, 1, 1, dim_ordering='th', activation='relu'))
+
+    def _get_conv1_sub_sample(self):
+        return (2, 2)
+
 if __name__ == '__main__':
     config = CnnDirsConfig()
     model = TinyAlexNet3(config, 'flic.valid.07', 'second-alex')

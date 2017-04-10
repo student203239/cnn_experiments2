@@ -43,12 +43,16 @@ class ModelsViewer(object):
         # m6_ones = Model6(config, 'flic.valid.07', 'flic2_ones', prepared_data=m6_gauss.get_prepared_data())
         from cnnbase2.models2 import TinyAlexNet2
         from cnnbase2.models2 import TinyAlexNet3
+        from cnnbase2.models2 import TinyAlexNet4
         # alex_ones = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones')
         # alex_ones2 = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones_2')
+        a3 = TinyAlexNet3(config, 'flic.shuffle.code10', 'alex_code10')
+        a4 = TinyAlexNet4(config, 'flic.shuffle.code10', 'alex_code10', prepared_data=a3.get_prepared_data())
         return {
             # 'z': TinyAlexNet2(config, 'flic.bound', 'alex1_ones'),
-            'z': TinyAlexNet3(config, 'flic.shuffle.code10', 'alex_ones'),
-            'x': TinyAlexNet3(config, 'flic.bound', 'alex_ones_after60.e150.2017-04-01--17-49-23')
+            'z': a3,
+            'x': a4
+            # 'x': TinyAlexNet3(config, 'flic.bound', 'alex_ones_after60.e150.2017-04-01--17-49-23')
             # 'x': m6_gauss,
             # 'c': m5_ones,
             # 'v': m6_ones,

@@ -4,12 +4,12 @@ import time
 
 from cnnbase2.load_data import CnnDirsConfig
 from cnnbase2.models import Model1, Model2, Model3, Model4, Model5, Model6
-from cnnbase2.models2 import TinyAlexNet2, TinyAlexNet3
+from cnnbase2.models2 import TinyAlexNet2, TinyAlexNet3, TinyAlexNet4
 
 if __name__ == '__main__':
     config = CnnDirsConfig()
     filename = 'alex_code10'
-    model2 = TinyAlexNet3(config, 'flic.shuffle.code10', filename)
+    model2 = TinyAlexNet4(config, 'flic.shuffle.code10', filename)
     # model2.load_from_file('alex_ones')
     epoch_pack = 15
     init_epoch = 60
