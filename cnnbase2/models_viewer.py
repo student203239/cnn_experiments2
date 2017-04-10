@@ -71,6 +71,7 @@ class ModelsViewer(object):
         self.now_show_view = '1'
 
     def get_Src_img(self):
+        print self.model.X_test.shape
         return self.model.X_test[self.index, :, :, :]
 
     def predicted_img(self, gca):

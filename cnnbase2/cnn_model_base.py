@@ -25,7 +25,8 @@ class CnnModelDecorator(object):
         if prepared_data:
             self.X_train, self.X_test, self.y_train, self.y_test = prepared_data
         else:
-            self._prepare_train_data(data_file, output_shape)
+            if data_file is not None:
+                self._prepare_train_data(data_file, output_shape)
         self._create_model(input_shape)
 
     def get_predicted_test(self):
@@ -229,6 +230,9 @@ class CnnModelDecorator(object):
         train_loss = 0
         test_loss = self.model.evaluate(self.X_test, self.y_test, 312)[0]
         return train_loss, test_loss
+
+    def predict(self, x, batch_size=32, verbose=0):
+        return self.model.predict(x, batch_size=batch_size, verbose=verbose)
 
 
 if __name__ == '__main__':

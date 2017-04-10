@@ -57,6 +57,9 @@ class TinyAlexNet(CnnModelDecorator):
         self.save_history(history)
         return history
 
+    def predict(self, x, batch_size=32, verbose=0):
+        return self.model.predict(x.transpose((0,3,1,2)), batch_size=batch_size, verbose=verbose)
+
 class TinyAlexNet1(TinyAlexNet):
 
     def __init__(self, *args, **kwargs):
