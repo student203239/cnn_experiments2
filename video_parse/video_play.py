@@ -3,6 +3,9 @@ import os
 import numpy as np
 import cv2
 import time
+import io
+from PIL import Image
+import matplotlib.pyplot as plt
 
 from skimage import img_as_ubyte
 
@@ -45,8 +48,13 @@ predicted = model.predict(model_input, verbose=1, batch_size=110)
 # print predicted.shape (322L, 1L, 14L, 14L)
 frame_time = 1.0 / fps
 # kth = 160
+print "Save video"
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter('output.avi',fourcc, fps, (128,128))
 for i in range(frame_index):
+    start_time = time.time()
     y = predicted[i,0,:,:]
+    # y[y<0.2] = 0
     # y_smallest_indx = np.argpartition(y, kth, axis=None)
     # x_i, y_i = np.unravel_index(y_smallest_indx[:kth], y.shape)
     # y[x_i, y_i] = 0
@@ -55,20 +63,22 @@ for i in range(frame_index):
     cv2.imshow('frame', img_mul)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    time.sleep(frame_time)
+    out.write(img_as_ubyte(img_mul))
+    to_sleep = frame_time - (time.time() - start_time)
+    if to_sleep > 0:
+        time.sleep(to_sleep)
 
-print "Save video"
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('output.avi',fourcc, fps, (128,128))
-for i in range(frame_index):
-    y = predicted[i,0,:,:]
-    # y_smallest_indx = np.argpartition(y, kth, axis=None)
-    # x_i, y_i = np.unravel_index(y_smallest_indx[:kth], y.shape)
-    # y[x_i, y_i] = 0
-    img_mul = model.multiply_rgb_img_by_gray_img(y, model_input[i,:,:,:], advanced_resize=True)
-    img_mul = img_as_ubyte(img_mul)
-    out.write(img_mul)
 
 cap.release()
 out.release()
 cv2.destroyAllWindows()
+
+# plt.figure()
+# plt.plot([1, 2])
+# plt.title("test")
+# buf = io.BytesIO()
+# plt.savefig(buf, format='png')
+# buf.seek(0)
+# im = Image.open(buf)
+# im.show()
+# buf.close()
