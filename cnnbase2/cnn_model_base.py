@@ -200,10 +200,14 @@ class CnnModelDecorator(object):
             self._save_img('%simgs_big/%d_x_by_expected.png' % (prefix, index), x_img2)
 
     @staticmethod
-    def multiply_rgb_img_by_gray_img(predicted_img, x_img):
+    def multiply_rgb_img_by_gray_img(predicted_img, x_img, advanced_resize=False):
         h, w, _ = x_img.shape
         if predicted_img.shape[0] != h or predicted_img.shape[0] != w:
             h, w, _ = x_img.shape
+            if advanced_resize:
+                n = max(h / predicted_img.shape[0], w / predicted_img.shape[0])
+                n = int(n+1)
+                predicted_img = np.kron(predicted_img, np.ones((n, n)))
             predicted_img = tr.resize(predicted_img, (h, w))
         x_img2 = x_img.copy()
         x_img2[:, :, 0] = x_img[:, :, 0] * predicted_img
