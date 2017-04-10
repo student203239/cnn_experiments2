@@ -4,6 +4,8 @@ import numpy as np
 import cv2
 import time
 
+from skimage import img_as_ubyte
+
 from cnnbase2.img_utils import ImgUtlis
 from cnnbase2.load_data import CnnDirsConfig
 from cnnbase2.models2 import TinyAlexNet4
@@ -50,5 +52,15 @@ for i in range(frame_index):
         break
     time.sleep(frame_time)
 
+print "Save video"
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter('output.avi',fourcc, fps, (128,128))
+for i in range(frame_index):
+    y = predicted[i,0,:,:]
+    img_mul = model.multiply_rgb_img_by_gray_img(y, model_input[i,:,:,:])
+    img_mul = img_as_ubyte(img_mul)
+    out.write(img_mul)
+
 cap.release()
+out.release()
 cv2.destroyAllWindows()
