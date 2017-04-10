@@ -40,11 +40,16 @@ while(cap.isOpened()):
 print "Done reading video"
 config = CnnDirsConfig()
 model = TinyAlexNet4(config, None, 'alex_code10')
+model.load_from_file()
 predicted = model.predict(model_input, verbose=1, batch_size=110)
 # print predicted.shape (322L, 1L, 14L, 14L)
 frame_time = 1.0 / fps
+# kth = 160
 for i in range(frame_index):
     y = predicted[i,0,:,:]
+    # y_smallest_indx = np.argpartition(y, kth, axis=None)
+    # x_i, y_i = np.unravel_index(y_smallest_indx[:kth], y.shape)
+    # y[x_i, y_i] = 0
     img_mul = model.multiply_rgb_img_by_gray_img(y, model_input[i,:,:,:])
     # img = np.kron(img, np.ones((10, 10)))
     cv2.imshow('frame', img_mul)
@@ -57,6 +62,9 @@ fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter('output.avi',fourcc, fps, (128,128))
 for i in range(frame_index):
     y = predicted[i,0,:,:]
+    # y_smallest_indx = np.argpartition(y, kth, axis=None)
+    # x_i, y_i = np.unravel_index(y_smallest_indx[:kth], y.shape)
+    # y[x_i, y_i] = 0
     img_mul = model.multiply_rgb_img_by_gray_img(y, model_input[i,:,:,:])
     img_mul = img_as_ubyte(img_mul)
     out.write(img_mul)
