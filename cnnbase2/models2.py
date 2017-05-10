@@ -1,3 +1,5 @@
+import hashlib
+
 import h5py
 from docutils.nodes import subscript
 from keras.engine import Layer
@@ -11,10 +13,11 @@ from keras.utils import np_utils
 from keras import backend as K
 import numpy as np
 
-from cnnbase2.load_data import CnnDirsConfig
+from cnnbase2.load_data import CnnDirsConfig, CnnDataLoader
 from keras.layers import Flatten, Dense, Dropout, Reshape, Permute, Activation, \
     Input, merge
 
+from cnnbase2.masks.small_masks_experiments import SmallMaskGen
 from cnnbase2.models import Model5
 from cnnbase2.models_viewer import ModelsViewer
 
@@ -26,6 +29,24 @@ class TinyAlexNet(CnnModelDecorator):
         # kwargs['output_shape'] = (11, 11)
         # kwargs['batch_size'] = 128
         super(TinyAlexNet, self).__init__(*args, **kwargs)
+
+    def set_default_filename(self, default_filename):
+        self.y_gen_mode = None
+        if default_filename.startswith("mayc10"):
+            if default_filename.startswith("mayc10r"):
+                self.y_gen_mode = 'r'  # regular from 1s inside to gradient out
+            elif default_filename.startswith("mayc10i"):
+                self.y_gen_mode = 'i'  # only inner ones
+            elif default_filename.startswith("mayc10o"):
+                self.y_gen_mode = 'o'  # only outter ones
+        self.default_filename = default_filename
+        if self._prepare_train_data_pack_to_recreate_y[0] != None:
+            hbb_box_train, hbb_box_test, output_shape = self._prepare_train_data_pack_to_recreate_y
+            self.y_train, self.y_test = self._create_y_train_y_test(hbb_box_train, hbb_box_test, output_shape)
+            print "y_train, y_test = {}, {}".format(self._numpy_sha1(self.y_train), self._numpy_sha1(self.y_test))
+
+    def _numpy_sha1(self, array):
+        return hashlib.sha1(array.view(np.uint8)).hexdigest()
 
     def _new_model(self, input_shape):
         config = CnnDirsConfig()
@@ -60,8 +81,42 @@ class TinyAlexNet(CnnModelDecorator):
     def get_X_train_right_shape(self):
         return self.X_train.transpose((0,3,1,2))
 
+    def evaluate_alex_model(self):
+        return self.model.evaluate(self.X_test.transpose((0,3,1,2)), self.y_test.transpose((0,3,1,2)), 12, verbose=1)
+
     def predict(self, x, batch_size=32, verbose=0):
         return self.model.predict(x.transpose((0,3,1,2)), batch_size=batch_size, verbose=verbose)
+
+    def _hbb_box_to_y(self, data, output_shape, output_y=None):
+        print "_hbb_box_to_y with y_gen_mode " + str(self.y_gen_mode)
+        if self.y_gen_mode is None:
+            super(TinyAlexNet, self)._hbb_box_to_y(data, output_shape)
+        shape = data.shape
+        if shape[1] != 10:
+            raise Exception("I accept only code10 coding, you give: " + str(shape))
+        if self.y_gen_mode == 'r':
+            return SmallMaskGen.hbb_box_to_y(data, output_shape, output_y=output_y)
+        elif self.y_gen_mode == 'i':
+            return SmallMaskGen.hbb_box_to_y_only_inner(data, output_shape, output_y=output_y)
+        elif self.y_gen_mode == 'o':
+            return SmallMaskGen.hbb_box_to_y_only_outter(data, output_shape, output_y=output_y)
+        else:
+            raise Exception("unknown y_gen_mode: " + str(self.y_gen_mode))
+
+class ConfigurableYDataLoader(CnnDataLoader):
+
+    def __init__(self, *args, **kwargs):
+        super(ConfigurableYDataLoader, self).__init__(*args, **kwargs)
+
+    def get_heat_map_loc(self, hbb_box, return_w, return_h):
+        inner, outter, w, h = SmallMaskGen.from_code_10(hbb_box)
+        x1, y1, x2, y2, w, h = hbb_box
+        rr = min(1.0*return_h/h, 1.0*return_w/w)
+        y1 = int(y1*rr)
+        x1 = int(x1*rr)
+        x2 = int(x2*rr+0.5)
+        y2 = int(y2*rr+0.5)
+        return x1, y1, x2, y2
 
 class TinyAlexNet1(TinyAlexNet):
 

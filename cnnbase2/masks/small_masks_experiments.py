@@ -38,11 +38,12 @@ class SmallMaskGen(object):
         return np.zeros((self.img_w, self.img_h), dtype='float32')
 
     @staticmethod
-    def hbb_box_to_y(src_y, output_shape):
+    def hbb_box_to_y(src_y, output_shape, bigger_factor=2, output_y=None):
         w, h = output_shape
         examples = src_y.shape[0]
-        y = np.zeros((examples,w,h,1), dtype='float32')
-        bigger_factor = 2
+        y = output_y
+        if y is None:
+            y = np.zeros((examples,w,h,1), dtype='float32')
         gen = SmallMaskGen(w*bigger_factor, h*bigger_factor)
         buffer = gen.create_buffer()
         for i in range(examples):
@@ -50,6 +51,36 @@ class SmallMaskGen(object):
             buffer[:,:] = 0.0
             gen.create_margin(inner, outter, buffer)
             y[i,:,:,0] = tr.resize(buffer, (h, w))
+        return y
+
+    @staticmethod
+    def hbb_box_to_y_only_inner(src_y, output_shape, output_y=None):
+        w, h = output_shape
+        examples = src_y.shape[0]
+        y = output_y
+        if y is None:
+            y = np.zeros((examples,w,h,1), dtype='float32')
+        for i in range(examples):
+            inner, outter = SmallMaskGen.get_heat_map_loc(src_y[i], w, h)
+            x1, y1, x2, y2 = inner
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            y[i,:,:,0] = 0
+            y[i,y1:y2,x1:x2,0] = 1
+        return y
+
+    @staticmethod
+    def hbb_box_to_y_only_outter(src_y, output_shape, output_y=None):
+        w, h = output_shape
+        examples = src_y.shape[0]
+        y = output_y
+        if y is None:
+            y = np.zeros((examples,w,h,1), dtype='float32')
+        for i in range(examples):
+            inner, outter = SmallMaskGen.get_heat_map_loc(src_y[i], w, h)
+            x1, y1, x2, y2 = outter
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            y[i,:,:,0] = 0
+            y[i,y1:y2,x1:x2,0] = 1
         return y
 
     @staticmethod
@@ -65,6 +96,13 @@ class SmallMaskGen(object):
         ox1, oy1, ox2, oy2 = outter
         ix1, iy1, ix2, iy2 = inner
         return ix1, iy1, ix2, iy2, w, h, ox1, oy1, ox2, oy2
+
+    @staticmethod
+    def from_code_10(pack_code_10):
+        ix1, iy1, ix2, iy2, w, h, ox1, oy1, ox2, oy2 = pack_code_10
+        ox1, oy1, ox2, oy2 = outter
+        ix1, iy1, ix2, iy2 = inner
+        return inner, outter, w, h
 
 if __name__ == '__main__':
     f=2

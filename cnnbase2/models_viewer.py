@@ -9,6 +9,7 @@ from cnnbase2.models import Model5, Model6
 class ModelsViewer(object):
 
     def __init__(self, models=None, load_models=True):
+        self.filenames = ['mayc10%s.experiment1' % ch for ch in ['r', 'i', 'o']]
         config = CnnDirsConfig()
         if models:
             self.models = models
@@ -46,12 +47,14 @@ class ModelsViewer(object):
         from cnnbase2.models2 import TinyAlexNet4
         # alex_ones = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones')
         # alex_ones2 = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones_2')
-        a3 = TinyAlexNet3(config, 'flic.shuffle.code10', 'alex_code10')
-        a4 = TinyAlexNet4(config, 'flic.shuffle.code10', 'alex_code10', prepared_data=a3.get_prepared_data())
+        # a3 = TinyAlexNet3(config, 'flic.shuffle.code10', 'alex_code10')
+        # a4 = TinyAlexNet4(config, 'flic.shuffle.code10', 'alex_code10', prepared_data=a3.get_prepared_data())
+        m = TinyAlexNet4(config, 'flic.small.shuffle.code10', self.filenames[0])
         return {
             # 'z': TinyAlexNet2(config, 'flic.bound', 'alex1_ones'),
-            'z': a3,
-            'x': a4
+            'z': m,
+            'x': m,
+            'c': m,
             # 'x': TinyAlexNet3(config, 'flic.bound', 'alex_ones_after60.e150.2017-04-01--17-49-23')
             # 'x': m6_gauss,
             # 'c': m5_ones,
@@ -111,7 +114,9 @@ class ModelsViewer(object):
         key = str(evt.key)
         gca = evt.canvas.figure.gca()
         if key in self.models:
-            self.model = self.models[key]
+            num = {'z':0, 'x':1,'c':2}[key]
+            self.model.set_default_filename(self.filenames[num])
+            # self.model = self.models[key]
             self.key_handlers[self.now_show_view](gca)
             evt.canvas.draw()
         if key in self.key_handlers:

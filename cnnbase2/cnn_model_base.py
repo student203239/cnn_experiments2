@@ -18,7 +18,8 @@ from cnnbase2.masks.small_masks_experiments import SmallMaskGen
 class CnnModelDecorator(object):
 
     def __init__(self, config, data_file, default_filename='first_cnn_model.model', input_shape=None, output_shape=None, batch_size=128, prepared_data=None):
-        self.default_filename = default_filename
+        self._prepare_train_data_pack_to_recreate_y = None, None, None
+        self.set_default_filename(default_filename)
         self.config = config
         self.batch_size = batch_size
         self.saved_predicted_test = None
@@ -28,6 +29,9 @@ class CnnModelDecorator(object):
             if data_file is not None:
                 self._prepare_train_data(data_file, output_shape)
         self._create_model(input_shape)
+
+    def set_default_filename(self, default_filename):
+        self.default_filename = default_filename
 
     def get_predicted_test(self):
         if self.saved_predicted_test is None:
@@ -98,19 +102,22 @@ class CnnModelDecorator(object):
         x_train, hbb_box_train, x_test, hbb_box_test = Binary().load_pack(self.config.data_filename(data_file))
         self.X_train = x_train
         self.X_test = x_test
+        self.y_train, self.y_test = None, None
+        self._prepare_train_data_pack_to_recreate_y = hbb_box_train, hbb_box_test, output_shape
         self.y_train, self.y_test = self._create_y_train_y_test(hbb_box_train, hbb_box_test, output_shape)
 
     def _create_y_train_y_test(self, hbb_box_train, hbb_box_test, output_shape):
-        loader = CnnDataLoader(self.config)
-        def saved_data_to_y(data):
-            shape = data.shape
-            if shape[1] == 6:
-                return loader.hbb_box_to_y(data, output_shape)
-            if shape[1] == 10:
-                return SmallMaskGen.hbb_box_to_y(data, output_shape)
-        y_train = saved_data_to_y(hbb_box_train)
-        y_test = saved_data_to_y(hbb_box_test)
+        y_train = self._hbb_box_to_y(hbb_box_train, output_shape, self.y_train)
+        y_test = self._hbb_box_to_y(hbb_box_test, output_shape, self.y_test)
         return y_train, y_test
+
+    def _hbb_box_to_y(self, data, output_shape):
+        shape = data.shape
+        if shape[1] == 6:
+            loader = CnnDataLoader(self.config)
+            return loader.hbb_box_to_y(data, output_shape)
+        if shape[1] == 10:
+            return SmallMaskGen.hbb_box_to_y(data, output_shape)
 
     def load_from_file(self, filename=None):
         filename = self.get_model_filename(filename)
