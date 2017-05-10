@@ -219,13 +219,16 @@ def copy_sequential(model):
     return new_model
 
 if __name__ == '__main__':
+    from cnnbase2.models2 import TinyAlexNet3
+    from cnnbase2.models2 import TinyAlexNet4
     model_filename = 'run2-epoch580' # model6
     model_filename = 'learn-on-8000-before-on-5000-epoch960' #model5
     config = CnnDirsConfig()
-    model = Model5(config, '100examples', model_filename)
+    # model = Model5(config, '100examples', model_filename)
+    model = TinyAlexNet4(config, 'flic.shuffle.code10', 'alex_code10')
     model.load_from_file()
     layers = model.model.layers
-    predicted = model.model.predict_classes(model.X_train)
+    # predicted = model.model.predict_classes(model.get_X_train_right_shape()[0:2,:,:,:])
 
     for index,layer in enumerate(layers):
         print "layer {} is {}".format(index, layer)
@@ -244,11 +247,11 @@ if __name__ == '__main__':
     #     layer_output = get_3rd_layer_output([img, 0])[0]
     #     print "layer {} has layer_output {}".format(index, layer_output.shape)
 
-    W = layers[5].W.get_value(borrow=True)
+    # W = layers[5].W.get_value(borrow=True)
 
-    print (predicted.shape)
-    print "W:"
-    print (W.shape)
+    # print (predicted.shape)
+    # print "W:"
+    # print (W.shape)
 
     print ""
     print "LateX:"
@@ -257,15 +260,29 @@ if __name__ == '__main__':
         if isinstance(layer, Convolution2D):
             W = layer.W.get_value(borrow=True)
             kw, kh, _, filters = W.shape
+            filters, _, kw, kh = W.shape
             print "\layerconvv{%d}{%d}{%d}" % (kw, kh, filters)
         elif isinstance(layer, Activation):
             print "\layeractivation"
+        elif layer.__class__.__name__ == 'MaxPooling2D':
+            pool_size = layer.pool_size
+            strides = layer.strides
+            px, py = pool_size
+            sx, sy = strides
+            print "\layerMaxPooling{%d}{%d}{%d}{%d}" % (px, py, sx, sy)
+        elif layer.__class__.__name__ == 'BatchNormalization':
+            print "\layerBatchNormalization"
+        elif layer.__class__.__name__ == 'SpatialDropout2D':
+            p = layer.p
+            print "\layerSpatialDropout{%.1f}" % p
         else:
-            print "\layverpooling"
-        get_3rd_layer_output = K.function([layers[0].input, K.learning_phase()],
-                              [layer.output])
-        layer_output = get_3rd_layer_output([img, 0])[0]
-        _, w, h, ff = layer_output.shape
+            print "\layer{%s}" % layer.__class__.__name__
+
+        # get_3rd_layer_output = K.function([layers[0].input, K.learning_phase()],
+        #                       [layer.output])
+        # layer_output = get_3rd_layer_output([img, 0])[0]
+        # _, w, h, ff = layer_output.shape
+        _, ff, w, h = layer.output_shape
         print "\layerout{%d}{%d}{%d}" % (w, h, ff)
 
     # print "\n".join(dir(layers[5]))

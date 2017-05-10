@@ -38,6 +38,9 @@ class CnnModelDecorator(object):
     def get_prepared_data(self):
         return self.X_train, self.X_test, self.y_train, self.y_test
 
+    def get_X_train_right_shape(self):
+        return self.X_train
+
     def _new_model(self, input_shape):
         raise Exception("Please impl this method is child class")
 

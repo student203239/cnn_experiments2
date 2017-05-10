@@ -43,7 +43,7 @@ while(cap.isOpened()):
 cap.release()
 print "Done reading video"
 config = CnnDirsConfig()
-model = TinyAlexNet4(config, None, 'alex_code10')
+model = TinyAlexNet4(config, None, 'alex_code10.e60.2017-04-08--14-09-55')
 model.load_from_file()
 predicted = model.predict(model_input, verbose=1, batch_size=110)
 # print predicted.shape (322L, 1L, 14L, 14L)
@@ -57,11 +57,22 @@ cap = cv2.VideoCapture(filename)
 for i in range(frame_index):
     start_time = time.time()
     y = predicted[i,0,:,:]
-    y[y<=0.25] = 0
+    cell_size = float(out_resolution[0]) / y.shape[0]
+    y[y<0.1] = 0
     ret, src_frame = cap.read()
     h, src_frame_sq, w = ImgUtlis.make_img_square(src_frame, move_up=True)
     src_frame_sq = ImgUtlis.resize_rgb_image(src_frame_sq, *out_resolution)
-    img_mul = model.multiply_rgb_img_by_gray_img(y, src_frame_sq, advanced_resize=True)
+    # img_mul = model.multiply_rgb_img_by_gray_img(y, src_frame_sq, advanced_resize=True)
+    img_mul = src_frame_sq
+    for xi in range(y.shape[0]):
+        for yi in range(y.shape[1]):
+            if y[yi, xi] > 0:
+                p1 = (int(xi * cell_size), int(yi * cell_size))
+                p2 = (int((xi + 1) * cell_size), int((yi + 1) * cell_size))
+                cv2.rectangle(img_mul, p1, p2, (0, 1, 0), 2)
+                txt = ("%.1f" % y[yi, xi])[1:]
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                cv2.putText(img_mul,txt,(p1[0],p2[1]-5), font, 1,(1,0,0),2,cv2.LINE_AA)
 
     cv2.imshow('frame', img_mul)
     if cv2.waitKey(1) & 0xFF == ord('q'):
