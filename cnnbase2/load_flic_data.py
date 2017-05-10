@@ -30,7 +30,7 @@ class FlicLoader(object):
         self.gaussion_buffer = np.fromfunction(g, (256, 256), dtype='float32')
 
     def main(self):
-        self.build_examples_packet('flic.shuffle.code10', to_hbb_box=self.to_hbb_box_10)
+        self.build_examples_packet('flic.small.shuffle.code10', to_hbb_box=self.to_hbb_box_10)
 
     def main3(self):
         matlab = self.matlab
@@ -69,10 +69,10 @@ class FlicLoader(object):
         to_hbb_box = to_hbb_box or self.to_hbb_box_torso
         l = sum(self.istrain(i) for i in range(self.mat_len()))
         index_total = 0
-        test_size = int(test_fac*l)
-        train_size = l - test_size
-        # test_size = 20
-        # train_size = 200
+        # test_size = int(test_fac*l)
+        # train_size = l - test_size
+        test_size = 20
+        train_size = 200
 
         x_train = np.zeros((train_size, w, h, 3), dtype='float32')
         hbb_size = len(to_hbb_box(0, 100, 100))
@@ -94,6 +94,8 @@ class FlicLoader(object):
 
             if index_total >= train_size:
                 index = index_total - train_size
+                if index >= test_size:
+                    break
                 x_test[index,:,:,:] = image
                 hbb_box_test[index,:] = hbb_box
             else:
