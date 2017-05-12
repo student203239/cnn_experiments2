@@ -10,11 +10,12 @@ if __name__ == '__main__':
     config = CnnDirsConfig()
     # filename = 'mayc10r.experiment1'
     filenames = ['mayc10%s.experiment1' % ch for ch in ['r', 'i', 'o']]
-    model = TinyAlexNet4(config, 'flic.small.shuffle.code10', filenames[0])
+    # model = TinyAlexNet4(config, 'flic.small.shuffle.code10', filenames[0])
+    model = TinyAlexNet4(config, 'flic.shuffle.code10', filenames[0])
     # for filename in filenames:
     #     model.save_model_to_file(filename)
-    epoches_to_do = 2
-    epoch_pack = 2
+    epoches_to_do = 4
+    epoch_pack = 15
     init_epoch = 0
     for ei in range(epoches_to_do):
         for filename in filenames:

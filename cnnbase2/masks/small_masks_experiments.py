@@ -105,7 +105,7 @@ class SmallMaskGen(object):
         return inner, outter, w, h
 
 if __name__ == '__main__':
-    f=2
+    f=20
     start = time.time()
     me = SmallMaskGen(14*f, 14*f)
     inner = 5*f, 5*f, 8*f, 7*f

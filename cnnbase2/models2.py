@@ -43,7 +43,7 @@ class TinyAlexNet(CnnModelDecorator):
         if self._prepare_train_data_pack_to_recreate_y[0] != None:
             hbb_box_train, hbb_box_test, output_shape = self._prepare_train_data_pack_to_recreate_y
             self.y_train, self.y_test = self._create_y_train_y_test(hbb_box_train, hbb_box_test, output_shape)
-            print "y_train, y_test = {}, {}".format(self._numpy_sha1(self.y_train), self._numpy_sha1(self.y_test))
+            # print "y_train, y_test = {}, {}".format(self._numpy_sha1(self.y_train), self._numpy_sha1(self.y_test))
 
     def _numpy_sha1(self, array):
         return hashlib.sha1(array.view(np.uint8)).hexdigest()
@@ -88,7 +88,6 @@ class TinyAlexNet(CnnModelDecorator):
         return self.model.predict(x.transpose((0,3,1,2)), batch_size=batch_size, verbose=verbose)
 
     def _hbb_box_to_y(self, data, output_shape, output_y=None):
-        print "_hbb_box_to_y with y_gen_mode " + str(self.y_gen_mode)
         if self.y_gen_mode is None:
             super(TinyAlexNet, self)._hbb_box_to_y(data, output_shape)
         shape = data.shape
