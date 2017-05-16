@@ -2,6 +2,7 @@ import scipy
 from matplotlib import pyplot
 import numpy as np
 
+from cnnbase2.img_utils import ImgUtlis
 from cnnbase2.load_data import CnnDirsConfig
 from cnnbase2.models import Model5, Model6
 
@@ -30,6 +31,7 @@ class ModelsViewer(object):
         self.key_handlers['['] = self.next_img
         self.key_handlers[']'] = self.prev_img
         self.key_handlers['m'] = self.change_mul
+        self.key_handlers['h'] = self.show_histogram
         self.key_handlers['\''] = self.next_output_layer
         self.now_show_view = '1'
         self.need_update_view = False
@@ -49,12 +51,14 @@ class ModelsViewer(object):
         # alex_ones2 = TinyAlexNet2(config, 'flic.valid.07', 'alex1_ones_2')
         # a3 = TinyAlexNet3(config, 'flic.shuffle.code10', 'alex_code10')
         # a4 = TinyAlexNet4(config, 'flic.shuffle.code10', 'alex_code10', prepared_data=a3.get_prepared_data())
-        m = TinyAlexNet4(config, 'flic.small.shuffle.code10', self.filenames[0])
+        mo = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[2])
+        mr = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[0], prepared_data=mo.get_prepared_data())
+        mi = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[1], prepared_data=mr.get_prepared_data())
         return {
             # 'z': TinyAlexNet2(config, 'flic.bound', 'alex1_ones'),
-            'z': m,
-            'x': m,
-            'c': m,
+            'z': mo,
+            'x': mi,
+            'c': mr,
             # 'x': TinyAlexNet3(config, 'flic.bound', 'alex_ones_after60.e150.2017-04-01--17-49-23')
             # 'x': m6_gauss,
             # 'c': m5_ones,
@@ -106,6 +110,17 @@ class ModelsViewer(object):
         self.mul_by_src_img = not self.mul_by_src_img
         self.need_update_view = True
 
+    def show_histogram(self, gca):
+        expects = self.model.y_test[:,:,:,0]
+        predicts = self.model.get_predicted_test()[:, self.output_layer, :, :]
+        expects = ImgUtlis.alfa_cut_image(0.1, expects)
+        predicts = ImgUtlis.alfa_cut_image(0.1, predicts)
+        errorsStatistics = ImgUtlis.count_advance_errors(expects, predicts)
+        import matplotlib.pyplot as plt
+        plt.hist(errorsStatistics.type2_list)
+        plt.show()
+        self.need_update_view = False
+
     def next_output_layer(self, gca):
         self.output_layer += 1
         self.need_update_view = True
@@ -115,8 +130,8 @@ class ModelsViewer(object):
         gca = evt.canvas.figure.gca()
         if key in self.models:
             num = {'z':0, 'x':1,'c':2}[key]
+            self.model = self.models[key]
             self.model.set_default_filename(self.filenames[num])
-            # self.model = self.models[key]
             self.key_handlers[self.now_show_view](gca)
             evt.canvas.draw()
         if key in self.key_handlers:
