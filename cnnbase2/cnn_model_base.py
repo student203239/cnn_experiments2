@@ -216,7 +216,7 @@ class CnnModelDecorator(object):
             h, w, _ = x_img.shape
             if advanced_resize:
                 n = max(h / predicted_img.shape[0], w / predicted_img.shape[0])
-                n = int(n+1)
+                n = int(n+0.5)
                 predicted_img = np.kron(predicted_img, np.ones((n, n)))
             predicted_img = tr.resize(predicted_img, (h, w))
         x_img2 = x_img.copy()
