@@ -9,21 +9,16 @@ from cnnbase2.models import Model5, Model6
 
 class ModelsViewer(object):
 
-    def __init__(self, models=None, load_models=True):
+    def __init__(self, models_container=None):
         self.filenames = ['mayc10%s.experiment1' % ch for ch in ['r', 'i', 'o']]
         config = CnnDirsConfig()
-        if models:
-            self.models = models
+        if models_container:
+            self.models_container = models_container
             print "use predefine models"
         else:
-            self.models = self.create_models(config)
+            self.models_container = ModelsContainerExperiment1(config)
         # self.models = self.create_models_cars(config)
-        self.model = self.models['z']
-        # model = Model6(config, '1000distractors', model_filename)
-        for m in self.models.values():
-            if load_models:
-                m.load_from_file()
-            m.get_predicted_test()
+        self.model = self.models_container.get_init_model()
         self.key_handlers = {}
         self.key_handlers['1'] = self.src_img
         self.key_handlers['2'] = self.predicted_img
@@ -128,10 +123,8 @@ class ModelsViewer(object):
     def onkey(self, evt):
         key = str(evt.key)
         gca = evt.canvas.figure.gca()
-        if key in self.models:
-            num = {'z':0, 'x':1,'c':2}[key]
-            self.model = self.models[key]
-            self.model.set_default_filename(self.filenames[num])
+        if self.models_container.contains_model_key(key):
+            self.model = self.models_container.get_model(key, self.model)
             self.key_handlers[self.now_show_view](gca)
             evt.canvas.draw()
         if key in self.key_handlers:
@@ -155,6 +148,44 @@ class ModelsViewer(object):
     # down
     # left
     # right
+
+
+class ModelsConatiner(object):
+    def __init__(self, models_dict):
+        self.models_dict = models_dict
+        for m in self.models_dict.values():
+            m.load_from_file()
+            m.get_predicted_test()
+
+    def contains_model_key(self, key):
+        return key in self.models_dict
+
+    def get_model(self, model_key, prev_model):
+        return self.models_dict[model_key]
+
+    def get_init_model(self):
+        return self.models_dict['z']
+
+
+class ModelsContainerExperiment1(ModelsConatiner):
+    def __init__(self, config):
+        from cnnbase2.models2 import TinyAlexNet4
+        self.filenames = ['mayc10%s.experiment1' % ch for ch in ['r', 'i', 'o']]
+        mo = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[2])
+        mr = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[0], prepared_data=mo.get_prepared_data())
+        mi = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[1], prepared_data=mr.get_prepared_data())
+        models_dict = {
+            'z': mo,
+            'x': mi,
+            'c': mr,
+        }
+        super(ModelsContainerExperiment1, self).__init__(models_dict)
+
+    def get_model(self, model_key, prev_model):
+        num = {'z':0, 'x':1,'c':2}[model_key]
+        model = self.models_dict[model_key]
+        model.set_default_filename(self.filenames[num])
+        return model
 
 DataRange = range(0, 360)
 DataRange = map(scipy.deg2rad, DataRange)
