@@ -79,17 +79,19 @@ class ModelsViewer(object):
     def predicted_img(self, gca):
         print self.model.get_predicted_test().shape
         predicted_img = self.model.get_predicted_test()[self.index, self.output_layer, :, :]
-        if self.mul_by_src_img:
-            src_img = self.get_Src_img()
-            predicted_img = self.model.multiply_rgb_img_by_gray_img(predicted_img, src_img)
+        src_img = self.get_Src_img()
+        if not self.mul_by_src_img:
+            src_img = np.ones(shape=src_img.shape, dtype=src_img.dtype)
+        predicted_img = self.model.multiply_rgb_img_by_gray_img(predicted_img, src_img, advanced_resize=True)
         gca.imshow(predicted_img)
         self.now_show_view = '2'
 
     def expected_img(self, gca):
         expected_img = self.model.y_test[self.index, :, :, 0]
-        if self.mul_by_src_img:
-            src_img = self.get_Src_img()
-            expected_img = self.model.multiply_rgb_img_by_gray_img(expected_img, src_img)
+        src_img = self.get_Src_img()
+        if not self.mul_by_src_img:
+            src_img = np.ones(shape=src_img.shape, dtype=src_img.dtype)
+        expected_img = self.model.multiply_rgb_img_by_gray_img(expected_img, src_img, advanced_resize=True)
         gca.imshow(expected_img)
         self.now_show_view = '3'
 
