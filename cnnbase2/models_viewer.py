@@ -185,9 +185,9 @@ class ModelsContainerExperiment1(ModelsConatiner):
 
     def get_model(self, model_key, prev_model):
         num = {'z':0, 'x':1,'c':2}[model_key]
-        model = self.models_dict[model_key]
-        model.set_default_filename(self.filenames[num])
-        return model
+        # model = self.models_dict[model_key]
+        prev_model.set_default_filename(self.filenames[num])
+        return prev_model
 
 DataRange = range(0, 360)
 DataRange = map(scipy.deg2rad, DataRange)

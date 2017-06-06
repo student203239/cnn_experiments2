@@ -63,7 +63,10 @@ class SmallMaskGen(object):
         for i in range(examples):
             inner, outter = SmallMaskGen.get_heat_map_loc(src_y[i], w, h)
             x1, y1, x2, y2 = inner
+            print x1, y1, x2, y2
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            print "convert to:"
+            print x1, y1, x2, y2
             y[i,:,:,0] = 0
             y[i,y1:y2,x1:x2,0] = 1
         return y

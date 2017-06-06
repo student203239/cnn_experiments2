@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     # type1, type2, ok, ok
     expected =  np.array([[0, 1], [1, 0]])
-    predicted = np.array([[0.8, 0.1], [1, 0]])
+    predicted = np.array([[1, 0], [1, 0]])
     predicted = ImgUtlis.alfa_cut_image(0.5, predicted)
     difss = expected - predicted
     bads = np.count_nonzero(difss)
