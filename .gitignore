@@ -90,3 +90,6 @@ ENV/
 .idea/
 
 .avi
+*.dll
+charts/
+*.avi
