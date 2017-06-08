@@ -82,28 +82,38 @@ class ErrorsStatistics(object):
         self.type1_list = np.zeros((samples), dtype=int)
         self.type2_list = np.zeros((samples), dtype=int)
         self.goods_list = np.zeros((samples), dtype=int)
-        self.precision_list = np.zeros((samples), dtype=int)
-        self.recall_list = np.zeros((samples), dtype=int)
-        self.f_score_list = np.zeros((samples), dtype=int)
+        self.tp_list = np.zeros((samples), dtype=int)
+        self.tn_list = np.zeros((samples), dtype=int)
+        self.precision_list = np.zeros((samples), dtype='float32')
+        self.recall_list = np.zeros((samples), dtype='float32')
+        self.f_score_list = np.zeros((samples), dtype='float32')
         self.stats = {'type1_list': self.type1_list, 'type2_list': self.type2_list,
                       'goods_list': self.goods_list, 'precision_list': self.precision_list,
                       'recall_list': self.recall_list, 'f_score_list': self.f_score_list}
 
     def _log_result(self, sample_index, error_type1, error_type2, goods, predicted_ones):
+        error_type1, error_type2, goods, predicted_ones = float(error_type1), float(error_type2), float(goods), float(predicted_ones)
         tp = predicted_ones - error_type1
+        tn = goods - tp
         precision, recall, f_score = 0, 0, 0
         try:
             precision = tp / predicted_ones
             recall = tp / (tp + error_type2)
-            f_score = 2 * precision * recall / (precision + recall)
         except ZeroDivisionError:
             pass
+        try:
+            f_score = 2 * tp / (2*tp + error_type1 + error_type2)
+        except ZeroDivisionError:
+            print "ZeroDivisionError f score, " + str((error_type1, error_type2, goods, predicted_ones)) + " : " + str(tp)
         self.type1_list[sample_index] = error_type1
         self.type2_list[sample_index] = error_type2
         self.goods_list[sample_index] = goods
         self.precision_list[sample_index] = precision
         self.recall_list[sample_index] = recall
         self.f_score_list[sample_index] = f_score
+        self.tp_list[sample_index] = tp
+        self.tn_list[sample_index] = tn
+
 
 if __name__ == '__main__':
     # ok, type2, ok, type1
