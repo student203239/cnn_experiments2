@@ -55,8 +55,8 @@ class ImgUtlis(object):
     @staticmethod
     def count_advance_error(expected, predicted):
         difss = expected - predicted
-        bads = np.count_nonzero(difss)
-        goods_and_type1 = np.count_nonzero(difss - 1)
+        bads = np.count_nonzero(difss) #fn+fp
+        goods_and_type1 = np.count_nonzero(difss - 1) #all -fn = tp+tn+fp
         alls = 1
         for i in range(expected.ndim):
             alls *= expected.shape[i]

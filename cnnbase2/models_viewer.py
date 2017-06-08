@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import scipy
 from matplotlib import pyplot
 import numpy as np
@@ -80,9 +82,10 @@ class ModelsViewer(object):
         print self.model.get_predicted_test().shape
         predicted_img = self.model.get_predicted_test()[self.index, self.output_layer, :, :]
         src_img = self.get_Src_img()
-        if not self.mul_by_src_img:
+        if self.mul_by_src_img:
             src_img = np.ones(shape=src_img.shape, dtype=src_img.dtype)
-        predicted_img = self.model.multiply_rgb_img_by_gray_img(predicted_img, src_img, advanced_resize=True)
+            predicted_img = self.model.multiply_rgb_img_by_gray_img(predicted_img, src_img, advanced_resize=True)
+        # predicted_img = self.model.multiply_rgb_img_by_gray_img(predicted_img, src_img, advanced_resize=False)
         gca.imshow(predicted_img)
         self.now_show_view = '2'
 
@@ -166,7 +169,10 @@ class ModelsConatiner(object):
         return self.models_dict[model_key]
 
     def get_init_model(self):
-        return self.models_dict['z']
+        return self.models_dict['x']
+
+    def get_models_keys(self):
+        return self.models_dict.keys()
 
 
 class ModelsContainerExperiment1(ModelsConatiner):
@@ -174,8 +180,8 @@ class ModelsContainerExperiment1(ModelsConatiner):
         from cnnbase2.models2 import TinyAlexNet4
         self.filenames = ['mayc10%s.experiment1' % ch for ch in ['r', 'i', 'o']]
         mo = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[2])
-        mr = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[0], prepared_data=mo.get_prepared_data())
-        mi = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[1], prepared_data=mr.get_prepared_data())
+        mr = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[0])#, prepared_data=mo.get_prepared_data())
+        mi = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[1])#, prepared_data=mr.get_prepared_data())
         models_dict = {
             'z': mo,
             'x': mi,
@@ -183,11 +189,19 @@ class ModelsContainerExperiment1(ModelsConatiner):
         }
         super(ModelsContainerExperiment1, self).__init__(models_dict)
 
+    def get_desc(self, model_key):
+        return {'z': "dla metody oznaczania całego zaanotowanego obszaru postaci",
+                'x': "dla metody oznaczanie jedynie tułowia",
+                "c": "dla podejścia mieszanego"}[model_key]
+
+    def get_short_letter(self, model_key):
+        return {"z": 'o', 'x': 'i', 'c': 'r'}[model_key]
+
     def get_model(self, model_key, prev_model):
         num = {'z':0, 'x':1,'c':2}[model_key]
-        # model = self.models_dict[model_key]
-        prev_model.set_default_filename(self.filenames[num])
-        return prev_model
+        model = self.models_dict[model_key]
+        #prev_model.set_default_filename(self.filenames[num])
+        return model
 
 DataRange = range(0, 360)
 DataRange = map(scipy.deg2rad, DataRange)

@@ -25,7 +25,7 @@ class ChartsGen():
     def f1_chart(self, model_key):
         self.model = self.models.get_model(model_key, self.model)
         title_sufix = self.models.get_desc(model_key)
-        errorsStatistics = self._create_errorsStatistics(self.model)
+        errorsStatistics, diffs = self._create_errorsStatistics(self.model)
         # plt.hist(errorsStatistics.f_score_list, normed=True)
 
         # plt.hist(errorsStatistics.type2_list, normed=True)
@@ -52,6 +52,8 @@ class ChartsGen():
         self._gen_and_save_plot(errorsStatistics.goods_list, "Corrects predicted", title_sufix, model_short_name)
         self._gen_and_save_plot(errorsStatistics.precision_list, "precision_list", title_sufix, model_short_name)
         self._gen_and_save_plot(errorsStatistics.recall_list, "recall_list", title_sufix, model_short_name)
+        self._gen_and_save_plot(diffs, "diffs", title_sufix, model_short_name)
+        self._gen_and_save_plot(diffs**2, "diffs2", title_sufix, model_short_name)
 
         # myarray = errorsStatistics.type2_list
         # weights = np.ones_like(myarray)/float(len(myarray))
@@ -82,12 +84,13 @@ class ChartsGen():
         matplotlib.rc('font', family='Arial')
 
     def _create_errorsStatistics(self, model):
-        expects = model.y_test[:, :, :, 0]
-        predicts = model.get_predicted_test()[:, 0, :, :]
-        expects = ImgUtlis.alfa_cut_image(0.5, expects)
-        predicts = ImgUtlis.alfa_cut_image(0.5, predicts)
+        expects_src = model.y_test[:, :, :, 0]
+        predicts_src = model.get_predicted_test()[:, 0, :, :]
+        diffs = (expects_src - predicts_src).flatten()
+        expects = ImgUtlis.alfa_cut_image(0.05, expects_src)
+        predicts = ImgUtlis.alfa_cut_image(0.05, predicts_src)
         errorsStatistics = ImgUtlis.count_advance_errors(expects, predicts)
-        return errorsStatistics
+        return errorsStatistics, diffs
 
 
 if __name__ == '__main__':
