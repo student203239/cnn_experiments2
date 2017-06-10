@@ -13,10 +13,39 @@ class ChartsGen():
         self.models = ModelsContainerExperiment1(CnnDirsConfig())
         self.model = self.models.get_init_model()
         self._prepare_pyplot()
+        self.filename_pattern = "../charts/%s"
         print "constructed"
 
     def to_filename(self, filename):
-        return "../charts/%s" % filename
+        return self.filename_pattern % filename
+
+    def nice_charts(self):
+        old_filename_pattern = self.filename_pattern;
+        self.filename_pattern = "../charts/nices/%s"
+        for key in self.models.get_models_keys():
+            self.nice_chart(key)
+        self.filename_pattern = old_filename_pattern
+
+    def nice_chart(self, model_key):
+        self.model = self.models.get_model(model_key, self.model)
+        title_sufix = self.models.get_desc(model_key)
+        errorsStatistics, diffs = self._create_errorsStatistics(self.model)
+        model_short_name = self.models.get_short_letter(model_key)
+
+        naming = {'xlabel': "Wartość błędu kwadratowego na pojedynczym pixelu",
+                  'ylabel': "Częstość pixeli w zbiorze walidacyjnym",
+                  'title': "Histogram błędów kwadratowych dla wszystkich pixeli w zbiorze walidacyjnym\n" + title_sufix}
+        self._gen_and_save_plot_nice(diffs**2, "diffs2ylog", title_sufix, model_short_name, log_scale=False, log_scale_y=True, **naming)
+
+        naming = {'xlabel': "Wartość precyzji na pojedynczym przykładzie",
+                  'ylabel': "Częstość przykładu w zbiorze walidacyjnym",
+                  'title': "Histogram wartości precyzji w zbiorze walidacyjnym\n" + title_sufix}
+        self._gen_and_save_plot_nice(errorsStatistics.precision_list, "precision_list", title_sufix, model_short_name, **naming)
+
+        naming = {'xlabel': "Liczba False Positive pojedynczym przykładzie",
+                  'ylabel': "Częstość w zbiorze walidacyjnym",
+                  'title': "Histogram False Positive w zbiorze walidacyjnym\n" + title_sufix}
+        self._gen_and_save_plot_nice(errorsStatistics.type1_list, "False Positive", title_sufix, model_short_name, **naming)
 
     def f1_charts(self):
         for key in self.models.get_models_keys():
@@ -93,6 +122,27 @@ class ChartsGen():
         plt.close()
         plt.close('all')
 
+    def _gen_and_save_plot_nice(self, myarray, measure_name, title_sufix, model_short_name, xlabel, ylabel, title,
+                                log_scale=False, log_scale_y=False):
+        mean = myarray.sum()/float(len(myarray))
+        print "%s for %s = %s" % (measure_name, title_sufix, str(mean))
+        weights = np.ones_like(myarray)/float(len(myarray))
+        if log_scale:
+            logspace = np.logspace(0.0, 1.0, 20) / 10.0
+            plt.hist(myarray, weights=weights, bins=logspace)
+            plt.gca().set_xscale("log")
+        else:
+            plt.hist(myarray, weights=weights)
+        if log_scale_y:
+            plt.gca().set_yscale("log")
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        plt.savefig(self.to_filename("%s_hist_%s.png" % (measure_name.replace(" ", "_"), model_short_name)))
+
+        plt.close()
+        plt.close('all')
+
 
     def _prepare_pyplot(self):
         import sys
@@ -112,4 +162,5 @@ class ChartsGen():
 
 if __name__ == '__main__':
     charts_gen = ChartsGen()
-    charts_gen.f1_charts()
+    # charts_gen.f1_charts()
+    charts_gen.nice_charts()
