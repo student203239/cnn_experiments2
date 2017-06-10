@@ -1,0 +1,57 @@
+Na historamie widać, że precision dla podejścia mieszanego jest kolosalnie lepsze niż dla innych zbadanych metod.
+Metoda mieszana dla ponad połowy przykładów uzyskała presion większe niż 90%.
+Na wykresie xxx pokazano porównaie średniego presision dla wszystkich zbadanych metod w tym ekperymencie.
+Metoda mieszana uzyskała największą precyzję, ale najmniejszy recall.
+Metoda mieszana uzyskała najmniejszy False Positive, czyli najrzadziej zwracała informacje o wykrytej osboe gdy jej tam nie było,
+pozostałe metody mają tendecję do identyfikowania pionowych kształtów jako osób. Przykład takiego zachowania
+znajduje się na rysunku false_positive.
+
+Ze względu na kiepską anotację danych uczących, w których zawsze zaanotowana jest tylko jedna osoba nawet, gdy na obrazie
+występuje więcej niż jedna osoba zachodzi sytuacja w której gdy model prawidłowo wykrywa osobę na obrazie, która nie jest zaanatowana
+to model jest za to karany, oraz pogarszją się jego wyniki w statystykach które go podsumowują.
+Przykład takich kiepsko zaanotowanych danych znajduje się na rysunku karanie_modelu_za_to_ze_dziala_dobrze. Każdy z
+modeli dokonał detecji niezaanotowanych osób. Każdy z modeli został za to ukarany w statystykach oceniających model,
+co sprawia, że te statystyki oceny mają trochę mniejszą wiarygodność. Poza tym statystyki oceniające takie jak
+F1 score karają modele za to, że oznaczą osobę w trochę inny sposób. Przy założeniu jak w ogóle wyliczać liczbę
+True Positive itp. jest nieodróżnianie oznaczenia osoby pixel obok od oznaczenia występenia osoby tam gdzie jej w ogóle nie ma.
+
+Statystki oceniające modele nie są idealne, ale moga dać pewne pojęcie o tym jak modele działają.
+Czytając te statystyki oraz jednocześnie przeglądając jak modele sobie radzą na prawdziwych danych moża dokonać
+pewnego wyboru modelu, suboptymalnie dobrego przy bazowaniu na określonym zbiorze walidacyjnym wraz z jego anotacjami.
+
+
+Należy uważać, aby model nie nauczył się rozpoznawać zbyt mało.
+
+
+F1 score for dla metody oznaczanie jedynie tułowia = 0.511838788363
+False Positive for dla metody oznaczanie jedynie tułowia = 3.4472361809
+False Negative for dla metody oznaczanie jedynie tułowia = 1.30653266332
+True Positive for dla metody oznaczanie jedynie tułowia = 3.00251256281
+True Negative for dla metody oznaczanie jedynie tułowia = 188.243718593
+Corrects predicted for dla metody oznaczanie jedynie tułowia = 191.246231156
+precision_list for dla metody oznaczanie jedynie tułowia = 0.471266665051
+recall_list for dla metody oznaczanie jedynie tułowia = 0.691478250015
+diffs for dla metody oznaczanie jedynie tułowia = 0.0141421104746
+diffs2 for dla metody oznaczanie jedynie tułowia = 0.015405918779
+
+F1 score for dla podejścia mieszanego = 0.367188343451
+False Positive for dla podejścia mieszanego = 0.834170854271
+False Negative for dla podejścia mieszanego = 8.54020100503
+True Positive for dla podejścia mieszanego = 3.44221105528
+True Negative for dla podejścia mieszanego = 183.183417085
+Corrects predicted for dla podejścia mieszanego = 186.625628141
+precision_list for dla podejścia mieszanego = 0.63006300423
+recall_list for dla podejścia mieszanego = 0.289226340289
+diffs for dla podejścia mieszanego = 0.0291438395641
+diffs2 for dla podejścia mieszanego = 0.0203096094211
+
+F1 score for dla metody oznaczania całego zaanotowanego obszaru postaci = 0.618783308633
+False Positive for dla metody oznaczania całego zaanotowanego obszaru postaci = 6.99748743719
+False Negative for dla metody oznaczania całego zaanotowanego obszaru postaci = 2.66582914573
+True Positive for dla metody oznaczania całego zaanotowanego obszaru postaci = 9.77386934673
+True Negative for dla metody oznaczania całego zaanotowanego obszaru postaci = 176.56281407
+Corrects predicted for dla metody oznaczania całego zaanotowanego obszaru postaci = 186.336683417
+precision_list for dla metody oznaczania całego zaanotowanego obszaru postaci = 0.549647383953
+recall_list for dla metody oznaczania całego zaanotowanego obszaru postaci = 0.76842709642
+diffs for dla metody oznaczania całego zaanotowanego obszaru postaci = 0.0256835996964
+diffs2 for dla metody oznaczania całego zaanotowanego obszaru postaci = 0.0288234722821
