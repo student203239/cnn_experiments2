@@ -35,8 +35,8 @@ class CnnModelDecorator(object):
 
     def get_predicted_test(self):
         if self.saved_predicted_test is None:
-            self.saved_predicted_test = self.model.predict(self.X_test.transpose((0,3,1,2)), batch_size=32)
-            # self.saved_predicted_test = self.model.predict(self.X_test, batch_size=32)
+            #self.saved_predicted_test = self.model.predict(self.X_test.transpose((0,3,1,2)), batch_size=32)
+            self.saved_predicted_test = self.model.predict(self.X_test, batch_size=32)
         return self.saved_predicted_test
 
     def get_prepared_data(self):
@@ -111,7 +111,7 @@ class CnnModelDecorator(object):
         y_test = self._hbb_box_to_y(hbb_box_test, output_shape, self.y_test)
         return y_train, y_test
 
-    def _hbb_box_to_y(self, data, output_shape):
+    def _hbb_box_to_y(self, data, output_shape, output_y_not_use_here=None):
         shape = data.shape
         if shape[1] == 6:
             loader = CnnDataLoader(self.config)

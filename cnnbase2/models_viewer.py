@@ -18,7 +18,8 @@ class ModelsViewer(object):
             self.models_container = models_container
             print "use predefine models"
         else:
-            self.models_container = ModelsContainerExperiment1(config)
+            # self.models_container = ModelsContainerExperiment1(config)
+            self.models_container = ModelsConatiner(self.create_models_cars(config), _is_car_like_predict_shape=True)
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
         self.key_handlers = {}
@@ -80,7 +81,13 @@ class ModelsViewer(object):
 
     def predicted_img(self, gca):
         print self.model.get_predicted_test().shape
-        predicted_img = self.model.get_predicted_test()[self.index, self.output_layer, :, :]
+        if self.models_container.is_car_like_predict_shape():
+            predicted_img = self.model.get_predicted_test()[self.index, :, :, self.output_layer]
+        else:
+            predicted_img = self.model.get_predicted_test()[self.index, self.output_layer, :, :]
+        predicted_img = np.absolute(predicted_img)
+        print "predicted_img:"
+        print predicted_img
         src_img = self.get_Src_img()
         if not self.mul_by_src_img:
             src_img = np.ones(shape=src_img.shape, dtype=src_img.dtype)
@@ -156,11 +163,15 @@ class ModelsViewer(object):
 
 
 class ModelsConatiner(object):
-    def __init__(self, models_dict):
+    def __init__(self, models_dict, _is_car_like_predict_shape=False):
         self.models_dict = models_dict
+        self._is_car_like_predict_shape = _is_car_like_predict_shape
         for m in self.models_dict.values():
             m.load_from_file()
             m.get_predicted_test()
+
+    def is_car_like_predict_shape(self):
+        return self._is_car_like_predict_shape
 
     def contains_model_key(self, key):
         return key in self.models_dict

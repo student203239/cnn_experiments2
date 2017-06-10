@@ -102,6 +102,12 @@ class TinyAlexNet(CnnModelDecorator):
         else:
             raise Exception("unknown y_gen_mode: " + str(self.y_gen_mode))
 
+    def get_predicted_test(self):
+        if self.saved_predicted_test is None:
+            self.saved_predicted_test = self.model.predict(self.X_test.transpose((0,3,1,2)), batch_size=32)
+            # self.saved_predicted_test = self.model.predict(self.X_test, batch_size=32)
+        return self.saved_predicted_test
+
 class ConfigurableYDataLoader(CnnDataLoader):
 
     def __init__(self, *args, **kwargs):
