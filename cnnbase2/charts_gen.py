@@ -53,10 +53,15 @@ class ChartsGen():
         self._gen_and_save_plot(errorsStatistics.precision_list, "precision_list", title_sufix, model_short_name)
         self._gen_and_save_plot(errorsStatistics.recall_list, "recall_list", title_sufix, model_short_name)
         self._gen_and_save_plot(diffs, "diffs", title_sufix, model_short_name)
+        self._gen_and_save_plot(diffs > 0.1, "diffs_cut0.1", title_sufix, model_short_name)
+        self._gen_and_save_plot(diffs, "diffsylog", title_sufix, model_short_name, log_scale_y=True)
+        self._gen_and_save_plot(diffs > 0.1, "diffsylog_cut0.1", title_sufix, model_short_name, log_scale_y=True)
         self._gen_and_save_plot(diffs**2, "diffs2", title_sufix, model_short_name)
-        self._gen_and_save_plot(diffs**2, "diffs2xlog", title_sufix, model_short_name, log_scale=True)
-        self._gen_and_save_plot(diffs**2, "diffs2xlogylog", title_sufix, model_short_name, log_scale=True, log_scale_y=True)
+        self._gen_and_save_plot((diffs**2) > 0.1, "diffs2_cut0.1", title_sufix, model_short_name)
+        # self._gen_and_save_plot(diffs**2, "diffs2xlog", title_sufix, model_short_name, log_scale=True)
+        # self._gen_and_save_plot(diffs**2, "diffs2xlogylog", title_sufix, model_short_name, log_scale=True, log_scale_y=True)
         self._gen_and_save_plot(diffs**2, "diffs2ylog", title_sufix, model_short_name, log_scale=False, log_scale_y=True)
+        self._gen_and_save_plot((diffs**2) > 0.1, "diffs2ylog_cut0.1", title_sufix, model_short_name, log_scale=False, log_scale_y=True)
 
         # myarray = errorsStatistics.type2_list
         # weights = np.ones_like(myarray)/float(len(myarray))
@@ -69,6 +74,8 @@ class ChartsGen():
         # plt.close('all')
 
     def _gen_and_save_plot(self, myarray, measure_name, title_sufix, model_short_name, log_scale=False, log_scale_y=False):
+        mean = myarray.sum()/float(len(myarray))
+        print "%s for %s = %s" % (measure_name, title_sufix, str(mean))
         weights = np.ones_like(myarray)/float(len(myarray))
         if log_scale:
             logspace = np.logspace(0.0, 1.0, 20) / 10.0
