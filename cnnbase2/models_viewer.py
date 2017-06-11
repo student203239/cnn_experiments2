@@ -76,7 +76,7 @@ class ModelsViewer(object):
         m5 = TinyAlexNet4(config, '1000examples')
         m5.y_gen_mode = None
         m5.default_filename = None
-        m6 = Model6(config, '1000examples', 'run2-epoch1120')
+        m6 = TinyAlexNet4(config, '1000examples', "june11.experiment2")
         return {'z': m5, 'x': m6}
 
     def src_img(self, gca):
