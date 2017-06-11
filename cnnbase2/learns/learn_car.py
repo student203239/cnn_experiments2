@@ -10,6 +10,7 @@ if __name__ == '__main__':
     config = CnnDirsConfig()
     filename = "june11.experiment2"
     model = TinyAlexNet4(config, '5000examples', filename)
+    model.batch_size = 100
     # model = TinyAlexNet4(config, '100examples', filename)
     epoches_to_do = 2
     epoch_pack = 20
