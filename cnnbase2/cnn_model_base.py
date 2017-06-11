@@ -17,8 +17,10 @@ from cnnbase2.masks.small_masks_experiments import SmallMaskGen
 
 class CnnModelDecorator(object):
 
-    def __init__(self, config, data_file, default_filename='first_cnn_model.model', input_shape=None, output_shape=None, batch_size=128, prepared_data=None):
+    def __init__(self, config, data_file, default_filename='first_cnn_model.model', input_shape=None, output_shape=None,
+                 batch_size=128, prepared_data=None, smaller_car = True):
         self._prepare_train_data_pack_to_recreate_y = None, None, None
+        self.smaller_car = smaller_car
         self.set_default_filename(default_filename)
         self.config = config
         self.batch_size = batch_size
@@ -115,7 +117,7 @@ class CnnModelDecorator(object):
         shape = data.shape
         if shape[1] == 6:
             loader = CnnDataLoader(self.config)
-            return loader.hbb_box_to_y_car(data, output_shape)
+            return loader.hbb_box_to_y_car(data, output_shape, self.smaller_car)
         if shape[1] == 10:
             return SmallMaskGen.hbb_box_to_y(data, output_shape)
 

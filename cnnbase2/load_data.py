@@ -129,7 +129,7 @@ class CnnDataLoader(object):
             y[i,y1:y2,x1:x2,0] = 1
         return y
 
-    def hbb_box_to_y_car(self, src_y, output_shape):
+    def hbb_box_to_y_car(self, src_y, output_shape, smaller_car=True):
         w, h = output_shape
         examples = src_y.shape[0]
         y = np.zeros((examples,w,h,1), dtype='float32')
@@ -143,12 +143,13 @@ class CnnDataLoader(object):
                 y2 = h
             if x2 > w:
                 x2 = w
-            if y2 - y1 > 3:
-                y2 -= 1
-                y1 += 1
-            if x2 - x1 > 6:
-                x2 -= 2
-                x1 += 2
+            if smaller_car:
+                if y2 - y1 > 3:
+                    y2 -= 1
+                    y1 += 1
+                if x2 - x1 > 6:
+                    x2 -= 2
+                    x1 += 2
             y[i,y1:y2,x1:x2,0] = 1
         return y
 

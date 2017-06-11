@@ -73,7 +73,7 @@ class ModelsViewer(object):
     def create_models_cars2(self, config):
         from cnnbase2.models2 import TinyAlexNet4
         # m5 = Model5(config, '1000examples', 'learn-on-8000-before-on-5000-epoch960')
-        m5 = TinyAlexNet4(config, '1000examples')
+        m5 = TinyAlexNet4(config, '1000examples', smaller_car = False)
         m5.y_gen_mode = None
         m5.default_filename = None
         m6 = TinyAlexNet4(config, '1000examples', "june11.experiment2")
