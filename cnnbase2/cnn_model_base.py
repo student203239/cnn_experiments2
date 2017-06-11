@@ -115,11 +115,14 @@ class CnnModelDecorator(object):
         shape = data.shape
         if shape[1] == 6:
             loader = CnnDataLoader(self.config)
-            return loader.hbb_box_to_y(data, output_shape)
+            return loader.hbb_box_to_y_car(data, output_shape)
         if shape[1] == 10:
             return SmallMaskGen.hbb_box_to_y(data, output_shape)
 
     def load_from_file(self, filename=None):
+        if self.default_filename is None and filename is None:
+            print "CANT LOAD, NO FILENAME"
+            return
         filename = self.get_model_filename(filename)
         self.model.load_weights(self.config.model_filename(filename))
 

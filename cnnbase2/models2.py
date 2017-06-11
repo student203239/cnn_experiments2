@@ -89,7 +89,7 @@ class TinyAlexNet(CnnModelDecorator):
 
     def _hbb_box_to_y(self, data, output_shape, output_y=None):
         if self.y_gen_mode is None:
-            super(TinyAlexNet, self)._hbb_box_to_y(data, output_shape)
+            return super(TinyAlexNet, self)._hbb_box_to_y(data, output_shape)
         shape = data.shape
         if shape[1] != 10:
             raise Exception("I accept only code10 coding, you give: " + str(shape))

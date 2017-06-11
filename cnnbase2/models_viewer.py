@@ -19,7 +19,7 @@ class ModelsViewer(object):
             print "use predefine models"
         else:
             # self.models_container = ModelsContainerExperiment1(config)
-            self.models_container = ModelsConatiner(self.create_models_cars(config), _is_car_like_predict_shape=True)
+            self.models_container = ModelsConatiner(self.create_models_cars2(config), _is_car_like_predict_shape=False)
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
         self.key_handlers = {}
@@ -67,6 +67,15 @@ class ModelsViewer(object):
 
     def create_models_cars(self, config):
         m5 = Model5(config, '1000examples', 'learn-on-8000-before-on-5000-epoch960')
+        m6 = Model6(config, '1000examples', 'run2-epoch1120')
+        return {'z': m5, 'x': m6}
+
+    def create_models_cars2(self, config):
+        from cnnbase2.models2 import TinyAlexNet4
+        # m5 = Model5(config, '1000examples', 'learn-on-8000-before-on-5000-epoch960')
+        m5 = TinyAlexNet4(config, '1000examples')
+        m5.y_gen_mode = None
+        m5.default_filename = None
         m6 = Model6(config, '1000examples', 'run2-epoch1120')
         return {'z': m5, 'x': m6}
 
