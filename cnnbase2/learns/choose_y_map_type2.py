@@ -11,7 +11,9 @@ if __name__ == '__main__':
     # filename = 'mayc10r.experiment1'
     filenames = ['mayc10%s.june12.experiment1' % ch for ch in ['r', 'i', 'o']]
     for filename in filenames:
-        TinyAlexNet4(config, 'flic.small.shuffle.code10', filename).save_model_to_file()
+        init_model = TinyAlexNet4(config, 'flic.small.shuffle.code10', filename)
+        init_model.save_model_to_file()
+        init_model.save_model_to_file(filename + "_init_model")
     # model = TinyAlexNet4(config, 'flic.small.shuffle.code10', filenames[0])
     model = TinyAlexNet4(config, 'flic.shuffle.code10', filenames[0])
     epoches_to_do = 4
