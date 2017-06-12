@@ -9,11 +9,11 @@ from cnnbase2.models2 import TinyAlexNet2, TinyAlexNet3, TinyAlexNet4
 if __name__ == '__main__':
     config = CnnDirsConfig()
     # filename = 'mayc10r.experiment1'
-    filenames = ['june12%s.experiment1' % ch for ch in ['r', 'i', 'o']]
+    filenames = ['mayc10%s.june12.experiment1' % ch for ch in ['r', 'i', 'o']]
+    for filename in filenames:
+        TinyAlexNet4(config, 'flic.small.shuffle.code10', filename).save_model_to_file()
     # model = TinyAlexNet4(config, 'flic.small.shuffle.code10', filenames[0])
     model = TinyAlexNet4(config, 'flic.shuffle.code10', filenames[0])
-    # for filename in filenames:
-    #     model.save_model_to_file(filename)
     epoches_to_do = 4
     epoch_pack = 15
     init_epoch = 0
