@@ -4,6 +4,7 @@ import scipy
 from matplotlib import pyplot
 import numpy as np
 
+from cnnbase2.data_feeders.data_feeder_cnn_model_like import DataFeederCnnModelBaseLike
 from cnnbase2.img_utils import ImgUtlis
 from cnnbase2.load_data import CnnDirsConfig
 from cnnbase2.models import Model5, Model6
@@ -19,7 +20,7 @@ class ModelsViewer(object):
             print "use predefine models"
         else:
             # self.models_container = ModelsContainerExperiment1(config)
-            self.models_container = ModelsConatiner(self.create_models_cars2(config), _is_car_like_predict_shape=False)
+            self.models_container = ModelsConatiner(self.create_models_cars2_with_data_feeder(config), _is_car_like_predict_shape=False)
             # self.models_container = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
@@ -74,10 +75,20 @@ class ModelsViewer(object):
     def create_models_cars2(self, config):
         from cnnbase2.models2 import TinyAlexNet4
         # m5 = Model5(config, '1000examples', 'learn-on-8000-before-on-5000-epoch960')
-        m5 = TinyAlexNet4(config, '1000examples', smaller_car = False)
+        m5 = TinyAlexNet4(config, '1000examples', 'june12.experiment3', smaller_car = False)
         m5.y_gen_mode = None
         m5.default_filename = None
         m6 = TinyAlexNet4(config, '1000examples', "june11.experiment2")
+        return {'z': m5, 'x': m6}
+
+    def create_models_cars2_with_data_feeder(self, config):
+        from cnnbase2.models2 import TinyAlexNet4
+        m5 = TinyAlexNet4(config, default_filename=  'june12.experiment3',
+                          prepared_data=DataFeederCnnModelBaseLike(config, '1000examples').init_car_type(smaller_car=False))
+        m5.y_gen_mode = None
+        m5.default_filename = None
+        m6 = TinyAlexNet4(config, default_filename="june11.experiment2",
+                          prepared_data=DataFeederCnnModelBaseLike(config, '1000examples').init_car_type(smaller_car=True))
         return {'z': m5, 'x': m6}
 
     def src_img(self, gca):

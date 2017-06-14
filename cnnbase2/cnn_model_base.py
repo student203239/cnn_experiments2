@@ -17,7 +17,7 @@ from cnnbase2.masks.small_masks_experiments import SmallMaskGen
 
 class CnnModelDecorator(object):
 
-    def __init__(self, config, data_file, default_filename='first_cnn_model.model', input_shape=None, output_shape=None,
+    def __init__(self, config, data_file=None, default_filename='first_cnn_model.model', input_shape=None, output_shape=None,
                  batch_size=128, prepared_data=None, smaller_car = True):
         self._prepare_train_data_pack_to_recreate_y = None, None, None
         self.smaller_car = smaller_car
@@ -26,10 +26,15 @@ class CnnModelDecorator(object):
         self.batch_size = batch_size
         self.saved_predicted_test = None
         if prepared_data:
-            self.X_train, self.X_test, self.y_train, self.y_test = prepared_data
+            if hasattr(prepared_data, 'prepare_data'):
+                self.X_train, self.X_test, self.y_train, self.y_test = prepared_data.prepare_data(output_shape)
+            else:
+                self.X_train, self.X_test, self.y_train, self.y_test = prepared_data
         else:
             if data_file is not None:
                 self._prepare_train_data(data_file, output_shape)
+            else:
+                raise Exception("unable to load up data, comment this if you want just predict by random CNN")
         self._create_model(input_shape)
 
     def set_default_filename(self, default_filename):
