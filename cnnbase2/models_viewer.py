@@ -20,6 +20,7 @@ class ModelsViewer(object):
         else:
             # self.models_container = ModelsContainerExperiment1(config)
             self.models_container = ModelsConatiner(self.create_models_cars2(config), _is_car_like_predict_shape=False)
+            # self.models_container = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
         self.key_handlers = {}
@@ -196,9 +197,9 @@ class ModelsConatiner(object):
 
 
 class ModelsContainerExperiment1(ModelsConatiner):
-    def __init__(self, config):
+    def __init__(self, config, base_filename='mayc10%s.experiment1'):
         from cnnbase2.models2 import TinyAlexNet4
-        self.filenames = ['mayc10%s.experiment1' % ch for ch in ['r', 'i', 'o']]
+        self.filenames = [base_filename % ch for ch in ['r', 'i', 'o']]
         mo = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[2])
         mr = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[0])#, prepared_data=mo.get_prepared_data())
         mi = TinyAlexNet4(config, 'flic.shuffle.code10', self.filenames[1])#, prepared_data=mr.get_prepared_data())

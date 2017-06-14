@@ -10,7 +10,7 @@ import numpy as np
 class ChartsGen():
 
     def __init__(self):
-        self.models = ModelsContainerExperiment1(CnnDirsConfig())
+        self.models = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
         self.model = self.models.get_init_model()
         self._prepare_pyplot()
         self.filename_pattern = "../charts/%s"
@@ -21,7 +21,7 @@ class ChartsGen():
 
     def nice_charts(self):
         old_filename_pattern = self.filename_pattern;
-        self.filename_pattern = "../charts/nices/%s"
+        self.filename_pattern = "../charts/nices_experiement1_po_raz_2/po_raz2_%s"
         for key in self.models.get_models_keys():
             self.nice_chart(key)
         self.filename_pattern = old_filename_pattern
