@@ -27,11 +27,9 @@ class DummyFeedersMerge(object):
         x[:x1.shape[0], :,:,:] = x1
         x[x1.shape[0]:, :,:,:] = x2
 
-        print "y1.max = {}, y2.max = {}".format(y1.max(), y2.max())
         y = np.zeros(self._shapes_add(y1, y2, True), dtype=y1.dtype)
         y[:y1.shape[0], :,:,0] = y1[:,:,:,0]
         y[y1.shape[0]:, :,:,1] = y2[:,:,:,0]
-        print "y.max = {}".format(y.max())
 
         return x, y
     
