@@ -20,8 +20,10 @@ class ModelsViewer(object):
             print "use predefine models"
         else:
             # self.models_container = ModelsContainerExperiment1(config)
-            self.models_container = ModelsConatiner(self.create_models_cars2_with_data_feeder(config), _is_car_like_predict_shape=False)
+            # self.models_container = ModelsConatiner(self.create_models_cars2_with_data_feeder(config), _is_car_like_predict_shape=False)
             # self.models_container = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
+            from cnnbase2.learns.learn_double_layer import Experiment4ModelContainer
+            self.models_container = Experiment4ModelContainer(config)
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
         self.key_handlers = {}
@@ -32,7 +34,7 @@ class ModelsViewer(object):
         self.key_handlers[']'] = self.prev_img
         self.key_handlers['m'] = self.change_mul
         self.key_handlers['h'] = self.show_histogram
-        self.key_handlers['\''] = self.next_output_layer
+        self.key_handlers['o'] = self.next_output_layer
         self.now_show_view = '1'
         self.need_update_view = False
         self.mul_by_src_img = False
@@ -100,12 +102,16 @@ class ModelsViewer(object):
         print self.model.X_test.shape
         return self.model.X_test[self.index, :, :, :]
 
+    def _get_img_from_y_array(self, index, array):
+        print "get img {}".format(array.shape)
+        if self.models_container.is_car_like_predict_shape():
+            return array[index, :, :, self.output_layer]
+        else:
+            return array[index, self.output_layer, :, :]
+
     def predicted_img(self, gca):
         print self.model.get_predicted_test().shape
-        if self.models_container.is_car_like_predict_shape():
-            predicted_img = self.model.get_predicted_test()[self.index, :, :, self.output_layer]
-        else:
-            predicted_img = self.model.get_predicted_test()[self.index, self.output_layer, :, :]
+        predicted_img = self._get_img_from_y_array(self.index, self.model.get_predicted_test())
         predicted_img = np.absolute(predicted_img)
         print "predicted_img:"
         print predicted_img
@@ -118,7 +124,7 @@ class ModelsViewer(object):
         self.now_show_view = '2'
 
     def expected_img(self, gca):
-        expected_img = self.model.y_test[self.index, :, :, 0]
+        expected_img = self.model.y_test[self.index, :, :, self.output_layer]
         src_img = self.get_Src_img()
         if not self.mul_by_src_img:
             src_img = np.ones(shape=src_img.shape, dtype=src_img.dtype)
@@ -151,6 +157,8 @@ class ModelsViewer(object):
 
     def next_output_layer(self, gca):
         self.output_layer += 1
+        if self.output_layer >= 2:
+            self.output_layer = 0
         self.need_update_view = True
 
     def onkey(self, evt):

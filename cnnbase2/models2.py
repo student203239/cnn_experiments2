@@ -74,7 +74,7 @@ class TinyAlexNet(CnnModelDecorator):
 
     def learn_now(self, nb_epoch=12, initial_epoch=1):
         history = self.model.fit(self.X_train.transpose((0,3,1,2)), self.y_train.transpose((0,3,1,2)), batch_size=self.batch_size, nb_epoch=nb_epoch,
-          verbose=1, validation_data=(self.X_test.transpose((0,3,1,2)), self.y_test.transpose((0,3,1,2))))
+          verbose=1, validation_data=(self.X_test.transpose((0,3,1,2)), self.y_test.transpose((0,3,1,2))), shuffle=True)
         self.save_history(history)
         return history
 
@@ -196,6 +196,11 @@ class TinyAlexNet4(TinyAlexNet):
         kwargs['input_shape'] = (128, 128, 3)
         kwargs['output_shape'] = (14, 14)
         kwargs['batch_size'] = 64
+        if 'output_layers' in kwargs:
+            self.output_layers = kwargs['output_layers']
+            del kwargs['output_layers']
+        else:
+            self.output_layers = 1
         super(TinyAlexNet4, self).__init__(*args, **kwargs)
 
     def _add_more_layers_to_model(self, model):
@@ -211,10 +216,17 @@ class TinyAlexNet4(TinyAlexNet):
         model.add(SpatialDropout2D(0.5, dim_ordering='th'))
         model.add(BatchNormalization(axis=1))
             # model.add(Convolution2D(130, 3, 3, dim_ordering='th'))
-        model.add(Convolution2D(1, 1, 1, dim_ordering='th', activation='relu'))
+        model.add(Convolution2D(self.output_layers, 1, 1, dim_ordering='th', activation='relu'))
 
     def _get_conv1_sub_sample(self):
         return (2, 2)
+
+
+class TinyAlexNet4Double(TinyAlexNet4):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['output_layers'] = 2
+        super(TinyAlexNet4Double, self).__init__(*args, **kwargs)
 
 if __name__ == '__main__':
     config = CnnDirsConfig()

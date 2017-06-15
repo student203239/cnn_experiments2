@@ -17,19 +17,21 @@ class DummyFeedersMerge(object):
         return X_train, X_test, y_train, y_test
 
     def _merge_data_arrays(self, x1, y1, x2, y2):
-        print "_merge_data_arrays"
-        print "x1 = " + str(x1.shape)  # (900L, 128L, 128L, 3L)
-        print "y1 = " + str(y1.shape)  # (900L, 14L, 14L, 1L)
-        print "x2 = " + str(x2.shape)  # (200L, 128L, 128L, 3L)
-        print "y2 = " + str(y2.shape)  # (200L, 14L, 14L, 1L)
+        # print "_merge_data_arrays"
+        # print "x1 = " + str(x1.shape)  # (900L, 128L, 128L, 3L)
+        # print "y1 = " + str(y1.shape)  # (900L, 14L, 14L, 1L)
+        # print "x2 = " + str(x2.shape)  # (200L, 128L, 128L, 3L)
+        # print "y2 = " + str(y2.shape)  # (200L, 14L, 14L, 1L)
         
         x = np.zeros(self._shapes_add(x1, x2), dtype=x1.dtype)
         x[:x1.shape[0], :,:,:] = x1
         x[x1.shape[0]:, :,:,:] = x2
 
+        print "y1.max = {}, y2.max = {}".format(y1.max(), y2.max())
         y = np.zeros(self._shapes_add(y1, y2, True), dtype=y1.dtype)
-        y[:y1.shape[0], :,:,0:0] = y1
-        y[y1.shape[0]:, :,:,1:1] = y2
+        y[:y1.shape[0], :,:,0] = y1[:,:,:,0]
+        y[y1.shape[0]:, :,:,1] = y2[:,:,:,0]
+        print "y.max = {}".format(y.max())
 
         return x, y
     
@@ -47,7 +49,8 @@ class DummyFeedersMerge(object):
 if __name__ == '__main__':
     print "TEST DUMMY MERGE DATA"
     config = CnnDirsConfig()
-    feeder1 = DataFeederCnnModelBaseLike(config, '1000examples').init_car_type(smaller_car=False)
+    # feeder1 = DataFeederCnnModelBaseLike(config, '1000examples').init_car_type(smaller_car=False)
+    feeder1 = DataFeederCnnModelBaseLike(config, 'flic.small.shuffle.code10').init_human_type(y_gen_mode='r')
     feeder2 = DataFeederCnnModelBaseLike(config, 'flic.small.shuffle.code10').init_human_type(y_gen_mode='r')
 
     merger = DummyFeedersMerge(feeder1, feeder2)
