@@ -31,7 +31,7 @@ class Experiment4ModelContainer(ModelsConatiner):
         self.models_dict = models_dict
         self._is_car_like_predict_shape = False
 
-if __name__ == '__main__':
+def run_experiment4():
     config = CnnDirsConfig()
 
     container = Experiment4ModelContainer(config)
@@ -50,3 +50,6 @@ if __name__ == '__main__':
     print "LEARN FINISH, GOING TO SYSTEM HIBERNATE"
     time.sleep(50)
     os.system("shutdown.exe /f /h")
+
+if __name__ == '__main__':
+    run_experiment4()
