@@ -23,8 +23,9 @@ class ModelsViewer(object):
             # self.models_container = ModelsConatiner(self.create_models_cars2_with_data_feeder(config), _is_car_like_predict_shape=False)
             # self.models_container = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
             from cnnbase2.learns.learn_double_layer import Experiment4ModelContainer
-            self.models_container = Experiment4ModelContainer(config)
+            self.models_container = Experiment4ModelContainer(config, load_train=False)
             # self.models_container = ModelsContainerExperiment3(config)
+        self.models_container.prepare_models_to_view()
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
         self.key_handlers = {}
@@ -207,9 +208,15 @@ class ModelsConatiner(object):
     def __init__(self, models_dict, _is_car_like_predict_shape=False):
         self.models_dict = models_dict
         self._is_car_like_predict_shape = _is_car_like_predict_shape
+        self._init_load_models()
+
+    def _init_load_models(self):
         for m in self.models_dict.values():
             m.load_from_file()
             m.get_predicted_test()
+
+    def prepare_models_to_view(self):
+        pass
 
     def is_car_like_predict_shape(self):
         return self._is_car_like_predict_shape

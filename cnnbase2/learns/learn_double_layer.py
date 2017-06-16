@@ -12,16 +12,16 @@ from cnnbase2.models_viewer import ModelsConatiner
 
 class Experiment4ModelContainer(ModelsConatiner):
 
-    def __init__(self, config):
+    def __init__(self, config, load_train=True):
         self.filename = "june15.experiment4"
 
         # cars_feeder = DataFeederCnnModelBaseLike(config, '100examples').init_car_type(smaller_car=True)
         # human_feeder = DataFeederCnnModelBaseLike(config, 'flic.small.shuffle.code10').init_human_type(y_gen_mode='r')
 
-        cars_feeder = DataFeederCnnModelBaseLike(config, '5000examples').init_car_type(smaller_car=True)
-        human_feeder = DataFeederCnnModelBaseLike(config, 'flic.shuffle.code10').init_human_type(y_gen_mode='r')
+        cars_feeder = DataFeederCnnModelBaseLike(config, '5000examples', load_train=load_train).init_car_type(smaller_car=True)
+        human_feeder = DataFeederCnnModelBaseLike(config, 'flic.shuffle.code10', load_train=load_train).init_human_type(y_gen_mode='r')
 
-        merger_feeder = DummyFeedersMerge(cars_feeder, human_feeder)
+        merger_feeder = DummyFeedersMerge(cars_feeder, human_feeder, load_train=load_train)
 
         model = TinyAlexNet4Double(config, default_filename=self.filename, prepared_data=merger_feeder)
         model.batch_size = 100
@@ -30,6 +30,9 @@ class Experiment4ModelContainer(ModelsConatiner):
 
         self.models_dict = models_dict
         self._is_car_like_predict_shape = False
+
+    def prepare_models_to_view(self):
+        self._init_load_models()
 
 def run_experiment4():
     config = CnnDirsConfig()

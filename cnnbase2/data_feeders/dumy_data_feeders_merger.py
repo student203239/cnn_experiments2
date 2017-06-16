@@ -5,14 +5,18 @@ import numpy as np
 
 class DummyFeedersMerge(object):
     
-    def __init__(self, feeder1, feeder2):
+    def __init__(self, feeder1, feeder2, load_train=True):
         self.feeder1 = feeder1
         self.feeder2 = feeder2
+        self.load_train = load_train
         
     def prepare_data(self, output_shape):
         X_train1, X_test1, y_train1, y_test1 = self.feeder1.prepare_data(output_shape)
         X_train2, X_test2, y_train2, y_test2 = self.feeder2.prepare_data(output_shape)
-        X_train, y_train = self._merge_data_arrays(X_train1, y_train1, X_train2, y_train2)
+        if self.load_train:
+            X_train, y_train = self._merge_data_arrays(X_train1, y_train1, X_train2, y_train2)
+        else:
+            X_train, y_train = None, None
         X_test, y_test = self._merge_data_arrays(X_test1, y_test1, X_test2, y_test2)
         return X_train, X_test, y_train, y_test
 

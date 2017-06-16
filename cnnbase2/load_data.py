@@ -367,6 +367,11 @@ class Binary(object):
         hbb_box_test = self.load_2_dim(pth+'.hbb_test')
         return x_train, hbb_box_train, x_test, hbb_box_test
 
+    def load_pack_only_test(self, pth):
+        x_test = self.load_4_dim(pth+'.x_test')
+        hbb_box_test = self.load_2_dim(pth+'.hbb_test')
+        return x_test, hbb_box_test
+
 def build_examples_packet(examples, distractor_prob, filename):
     config = CnnDirsConfig()
     loader = CnnDataLoader(config)
