@@ -24,17 +24,19 @@ class ModelsViewer(object):
             # self.models_container = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
             from cnnbase2.learns.learn_double_layer import Experiment4ModelContainer
             self.models_container = Experiment4ModelContainer(config)
+            # self.models_container = ModelsContainerExperiment3(config)
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
         self.key_handlers = {}
         self.key_handlers['1'] = self.src_img
         self.key_handlers['2'] = self.predicted_img
         self.key_handlers['3'] = self.expected_img
+        self.key_handlers['4'] = self.show_heatmap
         self.key_handlers['['] = self.next_img
         self.key_handlers[']'] = self.prev_img
         self.key_handlers['m'] = self.change_mul
-        self.key_handlers['h'] = self.show_histogram
         self.key_handlers['o'] = self.next_output_layer
+        self.key_handlers['i'] = self.save_imgs
         self.now_show_view = '1'
         self.need_update_view = False
         self.mul_by_src_img = False
@@ -155,10 +157,20 @@ class ModelsViewer(object):
         plt.show()
         self.need_update_view = False
 
+    def show_heatmap(self, gca):
+        predicted_img = self._get_img_from_y_array(self.index, self.model.get_predicted_test())
+        gca.imshow(predicted_img)
+        self.now_show_view = '4'
+
     def next_output_layer(self, gca):
         self.output_layer += 1
         if self.output_layer >= 2:
             self.output_layer = 0
+        self.need_update_view = True
+
+    def save_imgs(self, gca):
+        self.mul_by_src_img = True
+        print dir(gca)
         self.need_update_view = True
 
     def onkey(self, evt):
@@ -242,6 +254,26 @@ class ModelsContainerExperiment1(ModelsConatiner):
         model = self.models_dict[model_key]
         #prev_model.set_default_filename(self.filenames[num])
         return model
+
+
+class ModelsContainerExperiment3(ModelsConatiner):
+
+    def __init__(self, config):
+        from cnnbase2.models2 import TinyAlexNet4
+        filename = "june11.experiment2"
+        small_car_model = TinyAlexNet4(config, '5000examples', filename)
+
+        filename = "june12.experiment3"
+        big_car_model = TinyAlexNet4(config, '5000examples', filename, smaller_car = False)
+        models_dict = {'z': small_car_model, 'x': big_car_model}
+        super(ModelsContainerExperiment3, self).__init__(models_dict)
+
+    def get_desc(self, model_key):
+        return {'z': "dla metody oznaczania wycinka obszaru auta",
+                'x': "dla metody oznaczania całego obszaru auta"}[model_key]
+
+    def get_short_letter(self, model_key):
+        return {"z": 's', 'x': 'b'}[model_key]
 
 DataRange = range(0, 360)
 DataRange = map(scipy.deg2rad, DataRange)
