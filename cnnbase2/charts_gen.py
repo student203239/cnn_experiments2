@@ -2,29 +2,26 @@
 
 from cnnbase2.img_utils import ImgUtlis
 from cnnbase2.load_data import CnnDirsConfig
-from cnnbase2.models_viewer import ModelsContainerExperiment1
+from cnnbase2.models_viewer import ModelsContainerExperiment1, ModelsContainerExperiment3
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
 class ChartsGen():
 
-    def __init__(self):
-        self.models = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
+    def __init__(self, models, filename_pattern="../charts/%s"):
+        self.models = models
         self.model = self.models.get_init_model()
         self._prepare_pyplot()
-        self.filename_pattern = "../charts/%s"
+        self.filename_pattern = filename_pattern
         print "constructed"
 
     def to_filename(self, filename):
         return self.filename_pattern % filename
 
     def nice_charts(self):
-        old_filename_pattern = self.filename_pattern;
-        self.filename_pattern = "../charts/nices_experiement1_po_raz_2/po_raz2_%s"
         for key in self.models.get_models_keys():
             self.nice_chart(key)
-        self.filename_pattern = old_filename_pattern
 
     def nice_chart(self, model_key):
         self.model = self.models.get_model(model_key, self.model)
@@ -46,6 +43,29 @@ class ChartsGen():
                   'ylabel': "Częstość w zbiorze walidacyjnym",
                   'title': "Histogram False Positive w zbiorze walidacyjnym\n" + title_sufix}
         self._gen_and_save_plot_nice(errorsStatistics.type1_list, "False Positive", title_sufix, model_short_name, **naming)
+
+    def alpha_chart(self):
+        def mean_str(myarray):
+            return str(myarray.sum()/float(len(myarray)))
+        column_names = ['alpha']
+        for model_key in self.models.get_models_keys():
+            title_sufix = self.models.get_desc(model_key)
+            column_names.append("błąd średniokwadratowy " + title_sufix)
+            column_names.append("przecyzja " + title_sufix)
+            column_names.append("liczba FalsePositive " + title_sufix)
+            column_names.append("miara F1 " + title_sufix)
+        print ";".join(column_names)
+
+        for alpha_1 in xrange(1, 101):
+            alpha = float(alpha_1) / 100.0
+            values = [str(alpha)]
+            for model_key in self.models.get_models_keys():
+                self.model = self.models.get_model(model_key, self.model)
+                errorsStatistics, diffs = self._create_errorsStatistics(self.model, alpha)
+                values += [mean_str(diffs**2), mean_str(errorsStatistics.precision_list),
+                           mean_str(errorsStatistics.type1_list),
+                           mean_str(errorsStatistics.f_score_list)]
+            print ";".join(values)
 
     def f1_charts(self):
         for key in self.models.get_models_keys():
@@ -150,17 +170,30 @@ class ChartsGen():
         sys.setdefaultencoding('utf8')
         matplotlib.rc('font', family='Arial')
 
-    def _create_errorsStatistics(self, model):
+    def _create_errorsStatistics(self, model, alpha=0.8):
         expects_src = model.y_test[:, :, :, 0]
         predicts_src = model.get_predicted_test()[:, 0, :, :]
         diffs = (expects_src - predicts_src).flatten()
-        expects = ImgUtlis.alfa_cut_image(0.05, expects_src)
-        predicts = ImgUtlis.alfa_cut_image(0.05, predicts_src)
+        expects = ImgUtlis.alfa_cut_image(alpha, expects_src)
+        predicts = ImgUtlis.alfa_cut_image(alpha, predicts_src)
         errorsStatistics = ImgUtlis.count_advance_errors(expects, predicts)
         return errorsStatistics, diffs
 
+def charts_gen_experiment1_second_time():
+    charts_gen = ChartsGen(ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1'),
+                           "../charts/nices_experiement1_po_raz_2/po_raz2_%s")
+    charts_gen.nice_charts()
+
+def charts_gen_experiment3():
+    charts_gen = ChartsGen(ModelsContainerExperiment3(CnnDirsConfig()),
+                           "../charts/exp3/exp3_%s")
+    charts_gen.nice_charts()
+
+def alpha_table_experiement3():
+    charts_gen = ChartsGen(ModelsContainerExperiment3(CnnDirsConfig()),
+                           "../charts/exp3/exp3_%s")
+    charts_gen.alpha_chart()
 
 if __name__ == '__main__':
-    charts_gen = ChartsGen()
-    # charts_gen.f1_charts()
-    charts_gen.nice_charts()
+    # charts_gen_experiment3()
+    charts_gen_experiment3()
