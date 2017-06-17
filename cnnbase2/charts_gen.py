@@ -18,6 +18,7 @@ class ChartsGen():
         self._prepare_pyplot()
         self.filename_pattern = filename_pattern
         self.output_layer = 0
+        self.always_expect_zeros = False
         print "constructed"
 
     def to_filename(self, filename):
@@ -185,6 +186,8 @@ class ChartsGen():
                                                                    keep_callable=select_expect_callable)
         diffs = (expects_src - predicts_src).flatten()
         expects = ImgUtlis.alfa_cut_image(alpha, expects_src)
+        if self.always_expect_zeros:
+            expects = np.zeros(expects.shape, dtype=expects.dtype)
         predicts = ImgUtlis.alfa_cut_image(alpha, predicts_src)
         errorsStatistics = ImgUtlis.count_advance_errors(expects, predicts)
         return errorsStatistics, diffs
@@ -254,16 +257,18 @@ def table_experiement4():
                            "../charts/exp4/exp4_%s")
     charts_gen.evaluate_double_layer_model_experiement4()
 
-def table_experiement4_with_prev_models():
+def table_experiement4_with_prev_models(evaluate_on_zeros=False):
     config = CnnDirsConfig()
     base_filename='mayc10%s.june12.experiment1'
     filenames = [base_filename % ch for ch in ['r', 'i', 'o']]
     human_feeder = DataFeederCnnModelBaseLike(config, 'flic.shuffle.code10', load_train=False).init_human_type('r')
-    human_model = TinyAlexNet4(config, None, filenames[0],
-                               prepared_data=human_feeder)
 
     filename = "june12.experiment3"
     car_feeder = DataFeederCnnModelBaseLike(config, '5000examples', load_train=False).init_car_type(True)
+
+    if evaluate_on_zeros:
+        human_feeder, car_feeder = car_feeder, human_feeder
+    human_model = TinyAlexNet4(config, None, filenames[0], prepared_data=human_feeder)
     car_model = TinyAlexNet4(config, None, filename, smaller_car = True, prepared_data=car_feeder)
 
     models_dict = {'human_model': human_model, 'car_model': car_model}
@@ -274,9 +279,11 @@ def table_experiement4_with_prev_models():
                                                     'car_model': "dla rozpoznawania tylko aut"}[model_key]
     charts_gen = ChartsGen(models_conatiner,
                            "../charts/exp4/exp4cmp_%s")
+    if evaluate_on_zeros:
+        charts_gen.always_expect_zeros = True
     charts_gen.alpha_chart()
 
 if __name__ == '__main__':
     # charts_gen_experiment3()
     # table_experiement4()
-    table_experiement4_with_prev_models()
+    table_experiement4_with_prev_models(evaluate_on_zeros=True)
