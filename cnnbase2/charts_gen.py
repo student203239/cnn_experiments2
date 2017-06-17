@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from cnnbase2.data_feeders.data_feeder_cnn_model_like import DataFeederCnnModelBaseLike
 from cnnbase2.img_utils import ImgUtlis
 from cnnbase2.learns.learn_double_layer import Experiment4ModelContainer
 from cnnbase2.load_data import CnnDirsConfig
@@ -258,10 +258,13 @@ def table_experiement4_with_prev_models():
     config = CnnDirsConfig()
     base_filename='mayc10%s.june12.experiment1'
     filenames = [base_filename % ch for ch in ['r', 'i', 'o']]
-    human_model = TinyAlexNet4(config, 'flic.shuffle.code10', filenames[0])
+    human_feeder = DataFeederCnnModelBaseLike(config, 'flic.shuffle.code10', load_train=False).init_human_type('r')
+    human_model = TinyAlexNet4(config, None, filenames[0],
+                               prepared_data=human_feeder)
 
     filename = "june12.experiment3"
-    car_model = TinyAlexNet4(config, '5000examples', filename, smaller_car = False)
+    car_feeder = DataFeederCnnModelBaseLike(config, '5000examples', load_train=False).init_car_type(True)
+    car_model = TinyAlexNet4(config, None, filename, smaller_car = True, prepared_data=car_feeder)
 
     models_dict = {'human_model': human_model, 'car_model': car_model}
 
