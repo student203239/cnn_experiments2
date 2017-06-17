@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from cnnbase2.img_utils import ImgUtlis
+from cnnbase2.learns.learn_double_layer import Experiment4ModelContainer
 from cnnbase2.load_data import CnnDirsConfig
 from cnnbase2.models_viewer import ModelsContainerExperiment1, ModelsContainerExperiment3
 import matplotlib
@@ -11,9 +12,11 @@ class ChartsGen():
 
     def __init__(self, models, filename_pattern="../charts/%s"):
         self.models = models
+        self.models.prepare_models_to_view()
         self.model = self.models.get_init_model()
         self._prepare_pyplot()
         self.filename_pattern = filename_pattern
+        self.output_layer = 1
         print "constructed"
 
     def to_filename(self, filename):
@@ -170,14 +173,38 @@ class ChartsGen():
         sys.setdefaultencoding('utf8')
         matplotlib.rc('font', family='Arial')
 
-    def _create_errorsStatistics(self, model, alpha=0.8):
-        expects_src = model.y_test[:, :, :, 0]
-        predicts_src = model.get_predicted_test()[:, 0, :, :]
+    def _create_errorsStatistics(self, model, alpha=0.05):
+        expects_src = model.y_test[:, :, :, self.output_layer]
+        predicts_src = model.get_predicted_test()[:, self.output_layer, :, :]
+        assert expects_src.shape[0] == predicts_src.shape[0]
+        assert expects_src.shape[1] == predicts_src.shape[1]
+        assert expects_src.shape[2] == predicts_src.shape[2]
+        # expects_src, predicts_src = self._remove_expects_zero_imgs(expects_src, predicts_src)
         diffs = (expects_src - predicts_src).flatten()
         expects = ImgUtlis.alfa_cut_image(alpha, expects_src)
         predicts = ImgUtlis.alfa_cut_image(alpha, predicts_src)
         errorsStatistics = ImgUtlis.count_advance_errors(expects, predicts)
         return errorsStatistics, diffs
+
+    def _remove_expects_zero_imgs(self, expects_src, predicts_src):
+        len = expects_src.shape[0]
+        nonzeros = 0
+        for i in xrange(len):
+            m = expects_src[i,:,:].max()
+            if m > 0:
+                nonzeros += 1
+        if nonzeros == len:
+            return expects_src, predicts_src
+        expects_src_new = np.zeros((nonzeros, expects_src.shape[1], expects_src.shape[2]), dtype=expects_src.dtype)
+        predicts_src_new = np.zeros((nonzeros, predicts_src.shape[1], predicts_src.shape[2]), dtype=predicts_src.dtype)
+        new_index = 0
+        for i in xrange(len):
+            m = expects_src[i,:,:].max()
+            if m > 0:
+                expects_src_new[new_index,:,:] = expects_src[i,:,:]
+                predicts_src_new[new_index,:,:] = predicts_src[i,:,:]
+                new_index += 1
+        return expects_src_new, predicts_src_new
 
 def charts_gen_experiment1_second_time():
     charts_gen = ChartsGen(ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1'),
@@ -189,6 +216,11 @@ def charts_gen_experiment3():
                            "../charts/exp3/exp3_%s")
     charts_gen.nice_charts()
 
+def charts_gen_experiment4():
+    charts_gen = ChartsGen(Experiment4ModelContainer(CnnDirsConfig(), load_train=False),
+                           "../charts/exp4/exp4_%s")
+    charts_gen.nice_charts()
+
 def alpha_table_experiement3():
     charts_gen = ChartsGen(ModelsContainerExperiment3(CnnDirsConfig()),
                            "../charts/exp3/exp3_%s")
@@ -196,4 +228,4 @@ def alpha_table_experiement3():
 
 if __name__ == '__main__':
     # charts_gen_experiment3()
-    charts_gen_experiment3()
+    charts_gen_experiment4()

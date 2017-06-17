@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 
 import time
@@ -33,6 +35,12 @@ class Experiment4ModelContainer(ModelsConatiner):
 
     def prepare_models_to_view(self):
         self._init_load_models()
+
+    def get_desc(self, model_key):
+        return {'x': "dla dwukanałowego wyjścia"}[model_key]
+
+    def get_short_letter(self, model_key):
+        return {'x': 'dl'}[model_key]
 
 def run_experiment4():
     config = CnnDirsConfig()
