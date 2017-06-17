@@ -14,7 +14,7 @@ from cnnbase2.models_viewer import ModelsConatiner
 class Experiment5ModelContainer(ModelsConatiner):
 
     def __init__(self, config, load_train=True):
-        self.filename = "june17.experiment5"
+        self.filename = "__delete.this.dummy.test.june17.experiment5."
 
         # cars_feeder = DataFeederCnnModelBaseLike(config, '100examples').init_car_type(smaller_car=True)
         # human_feeder = DataFeederCnnModelBaseLike(config, 'flic.small.shuffle.code10').init_human_type(y_gen_mode='r')
@@ -49,21 +49,27 @@ def run_experiment5():
     config = CnnDirsConfig()
 
     container = Experiment5ModelContainer(config)
-    filename = container.filename
+    filename_base = container.filename
     model = container.get_init_model()
-    model.save_model_to_file(filename + ".init")
-    epoches_to_do = 2
-    epoch_pack = 10
+    for model_key in container.get_models_keys():
+        model = container.get_model(model_key, model)
+        filename = filename_base + container.get_short_letter(model_key)
+        model.save_model_to_file(filename + ".init")
+    epoches_to_do = 4
+    epoch_pack = 6
     init_epoch = 0
     for ei in range(epoches_to_do):
-        model.learn_now(epoch_pack)
-        epoch = init_epoch + (ei+1) * epoch_pack
-        model.save_model_to_file(filename + ('.e%d.' % epoch) + model.last_history_timestamp)
-        model.save_model_to_file()
-        print "done epoch %d on %s" % (epoch, filename)
+        for model_key in container.get_models_keys():
+            model = container.get_model(model_key, model)
+            filename = filename_base + container.get_short_letter(model_key)
+            model.learn_now(epoch_pack)
+            epoch = init_epoch + (ei+1) * epoch_pack
+            model.save_model_to_file(filename + ('.e%d.' % epoch) + model.last_history_timestamp)
+            model.save_model_to_file()
+            print "done epoch %d on %s" % (epoch, filename)
     print "LEARN FINISH, GOING TO SYSTEM HIBERNATE"
     time.sleep(50)
     os.system("shutdown.exe /f /h")
 
 if __name__ == '__main__':
-    run_experiment4()
+    run_experiment5()
