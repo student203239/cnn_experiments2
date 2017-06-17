@@ -104,7 +104,8 @@ class ErrorsStatistics(object):
         try:
             f_score = 2 * tp / (2*tp + error_type1 + error_type2)
         except ZeroDivisionError:
-            print "ZeroDivisionError f score, " + str((error_type1, error_type2, goods, predicted_ones)) + " : " + str(tp)
+            # print "ZeroDivisionError f score, " + str((error_type1, error_type2, goods, predicted_ones)) + " : " + str(tp)
+            pass
         self.type1_list[sample_index] = error_type1
         self.type2_list[sample_index] = error_type2
         self.goods_list[sample_index] = goods

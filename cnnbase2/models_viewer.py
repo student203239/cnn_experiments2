@@ -209,6 +209,7 @@ class ModelsConatiner(object):
         self.models_dict = models_dict
         self._is_car_like_predict_shape = _is_car_like_predict_shape
         self._init_load_models()
+        self.init_model_key = 'x'
 
     def _init_load_models(self):
         for m in self.models_dict.values():
@@ -228,7 +229,7 @@ class ModelsConatiner(object):
         return self.models_dict[model_key]
 
     def get_init_model(self):
-        return self.models_dict['x']
+        return self.models_dict[self.init_model_key]
 
     def get_models_keys(self):
         return self.models_dict.keys()

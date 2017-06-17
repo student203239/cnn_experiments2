@@ -3,7 +3,8 @@
 from cnnbase2.img_utils import ImgUtlis
 from cnnbase2.learns.learn_double_layer import Experiment4ModelContainer
 from cnnbase2.load_data import CnnDirsConfig
-from cnnbase2.models_viewer import ModelsContainerExperiment1, ModelsContainerExperiment3
+from cnnbase2.models2 import TinyAlexNet4
+from cnnbase2.models_viewer import ModelsContainerExperiment1, ModelsContainerExperiment3, ModelsConatiner
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,7 +17,7 @@ class ChartsGen():
         self.model = self.models.get_init_model()
         self._prepare_pyplot()
         self.filename_pattern = filename_pattern
-        self.output_layer = 1
+        self.output_layer = 0
         print "constructed"
 
     def to_filename(self, filename):
@@ -59,7 +60,7 @@ class ChartsGen():
             column_names.append("miara F1 " + title_sufix)
         print ";".join(column_names)
 
-        for alpha_1 in xrange(1, 101):
+        for alpha_1 in [5, 80]:
             alpha = float(alpha_1) / 100.0
             values = [str(alpha)]
             for model_key in self.models.get_models_keys():
@@ -173,38 +174,60 @@ class ChartsGen():
         sys.setdefaultencoding('utf8')
         matplotlib.rc('font', family='Arial')
 
-    def _create_errorsStatistics(self, model, alpha=0.05):
+    def _create_errorsStatistics(self, model, alpha=0.05, select_expect_callable=None):
         expects_src = model.y_test[:, :, :, self.output_layer]
         predicts_src = model.get_predicted_test()[:, self.output_layer, :, :]
         assert expects_src.shape[0] == predicts_src.shape[0]
         assert expects_src.shape[1] == predicts_src.shape[1]
         assert expects_src.shape[2] == predicts_src.shape[2]
-        # expects_src, predicts_src = self._remove_expects_zero_imgs(expects_src, predicts_src)
+        if select_expect_callable is not None:
+            expects_src, predicts_src = self._remove_imgs_from_expects(expects_src, predicts_src,
+                                                                   keep_callable=select_expect_callable)
         diffs = (expects_src - predicts_src).flatten()
         expects = ImgUtlis.alfa_cut_image(alpha, expects_src)
         predicts = ImgUtlis.alfa_cut_image(alpha, predicts_src)
         errorsStatistics = ImgUtlis.count_advance_errors(expects, predicts)
         return errorsStatistics, diffs
 
-    def _remove_expects_zero_imgs(self, expects_src, predicts_src):
+    def _remove_imgs_from_expects(self, expects_src, predicts_src, keep_callable):
         len = expects_src.shape[0]
-        nonzeros = 0
+        nonremoved = 0
         for i in xrange(len):
-            m = expects_src[i,:,:].max()
-            if m > 0:
-                nonzeros += 1
-        if nonzeros == len:
+            if keep_callable(expects_src[i,:,:]):
+                nonremoved += 1
+        if nonremoved == len:
             return expects_src, predicts_src
-        expects_src_new = np.zeros((nonzeros, expects_src.shape[1], expects_src.shape[2]), dtype=expects_src.dtype)
-        predicts_src_new = np.zeros((nonzeros, predicts_src.shape[1], predicts_src.shape[2]), dtype=predicts_src.dtype)
+        expects_src_new = np.zeros((nonremoved, expects_src.shape[1], expects_src.shape[2]), dtype=expects_src.dtype)
+        predicts_src_new = np.zeros((nonremoved, predicts_src.shape[1], predicts_src.shape[2]), dtype=predicts_src.dtype)
         new_index = 0
         for i in xrange(len):
-            m = expects_src[i,:,:].max()
-            if m > 0:
+            if keep_callable(expects_src[i,:,:]):
                 expects_src_new[new_index,:,:] = expects_src[i,:,:]
                 predicts_src_new[new_index,:,:] = predicts_src[i,:,:]
                 new_index += 1
         return expects_src_new, predicts_src_new
+
+    def evaluate_double_layer_model_experiement4(self):
+        def mean_str(myarray):
+            return str(myarray.sum()/float(len(myarray)))
+        for output_layer_proccessing in [0, 1]:
+            for expect_zeros in [0, 1]:
+                self.output_layer = output_layer_proccessing
+                if expect_zeros == 1:
+                    select_callable = lambda a: a.max() == 0
+                else:
+                    select_callable = lambda a: a.max() > 0
+                for alpha in [0.05, 0.8]:
+                    print "Badam DL" + str(output_layer_proccessing) + " przy alfa = " + str(alpha)
+                    if expect_zeros == 1:
+                        print "Oczekuje nic (zeros) na wyjściu"
+                    else:
+                        print "Oczekuje zdjęć " + ["aut", "osób"][output_layer_proccessing] + " na wyjściu"
+                    errorsStatistics, diffs = self._create_errorsStatistics(self.model, alpha, select_expect_callable=select_callable)
+                    print "diff2 = " + mean_str(diffs**2)
+                    print "precision = " + mean_str(errorsStatistics.precision_list)
+                    print "False Positive = " + mean_str(errorsStatistics.type1_list)
+                    print ""
 
 def charts_gen_experiment1_second_time():
     charts_gen = ChartsGen(ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1'),
@@ -226,6 +249,31 @@ def alpha_table_experiement3():
                            "../charts/exp3/exp3_%s")
     charts_gen.alpha_chart()
 
+def table_experiement4():
+    charts_gen = ChartsGen(Experiment4ModelContainer(CnnDirsConfig(), load_train=False),
+                           "../charts/exp4/exp4_%s")
+    charts_gen.evaluate_double_layer_model_experiement4()
+
+def table_experiement4_with_prev_models():
+    config = CnnDirsConfig()
+    base_filename='mayc10%s.june12.experiment1'
+    filenames = [base_filename % ch for ch in ['r', 'i', 'o']]
+    human_model = TinyAlexNet4(config, 'flic.shuffle.code10', filenames[0])
+
+    filename = "june12.experiment3"
+    car_model = TinyAlexNet4(config, '5000examples', filename, smaller_car = False)
+
+    models_dict = {'human_model': human_model, 'car_model': car_model}
+
+    models_conatiner = ModelsConatiner(models_dict)
+    models_conatiner.init_model_key = 'human_model'
+    models_conatiner.get_desc = lambda model_key:  {'human_model': "dla rozpoznawania tylko ludzi",
+                                                    'car_model': "dla rozpoznawania tylko aut"}[model_key]
+    charts_gen = ChartsGen(models_conatiner,
+                           "../charts/exp4/exp4cmp_%s")
+    charts_gen.alpha_chart()
+
 if __name__ == '__main__':
     # charts_gen_experiment3()
-    charts_gen_experiment4()
+    # table_experiement4()
+    table_experiement4_with_prev_models()
