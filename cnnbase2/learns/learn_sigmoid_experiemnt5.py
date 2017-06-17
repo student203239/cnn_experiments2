@@ -21,13 +21,16 @@ class Experiment5ModelContainer(ModelsConatiner):
 
         cars_feeder = DataFeederCnnModelBaseLike(config, '5000examples', load_train=load_train).init_car_type(smaller_car=True)
         human_feeder = DataFeederCnnModelBaseLike(config, 'flic.shuffle.code10', load_train=load_train).init_human_type(y_gen_mode='r')
-
         merger_feeder = DummyFeedersMerge(cars_feeder, human_feeder, load_train=load_train)
 
-        model = TinyAlexNet5(config, default_filename=self.filename, prepared_data=merger_feeder)
-        model.batch_size = 100
-        model.load_from_file("june15.experiment4.e40.2017-06-16--02-57-33.TinyAlexNet5.model")
-        models_dict = {'x': model}
+        model_sigmoid = TinyAlexNet5(config, use_sigmoid=True, default_filename=self.filename, prepared_data=merger_feeder)
+        model_sigmoid.batch_size = 100
+        model_sigmoid.load_from_file("june15.experiment4.e40.2017-06-16--02-57-33.TinyAlexNet5.model")
+
+        model_tanh = TinyAlexNet5(config, use_sigmoid=False, default_filename=self.filename, prepared_data=merger_feeder)
+        model_tanh.batch_size = 100
+        model_tanh.load_from_file("june15.experiment4.e40.2017-06-16--02-57-33.TinyAlexNet5.model")
+        models_dict = {'z':model_tanh, 'x': model_sigmoid}
 
         self.models_dict = models_dict
         self._is_car_like_predict_shape = False
@@ -36,10 +39,11 @@ class Experiment5ModelContainer(ModelsConatiner):
     #     self._init_load_models()
 
     def get_desc(self, model_key):
-        return {'x': "dla dwukanałowego wyjścia"}[model_key]
+        return {'z': "dla aktywacji tanh",
+            'x': "dla aktywacji sigmoid"}[model_key]
 
     def get_short_letter(self, model_key):
-        return {'x': 'dl'}[model_key]
+        return {'z': 'tanh', 'x': 'sigmoid'}[model_key]
 
 def run_experiment5():
     config = CnnDirsConfig()
