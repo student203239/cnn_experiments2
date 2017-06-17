@@ -18,8 +18,6 @@ from keras.layers import Flatten, Dense, Dropout, Reshape, Permute, Activation, 
     Input, merge
 
 from cnnbase2.masks.small_masks_experiments import SmallMaskGen
-from cnnbase2.models import Model5
-from cnnbase2.models_viewer import ModelsViewer
 
 
 class TinyAlexNet(CnnModelDecorator):
@@ -228,12 +226,70 @@ class TinyAlexNet4Double(TinyAlexNet4):
         kwargs['output_layers'] = 2
         super(TinyAlexNet4Double, self).__init__(*args, **kwargs)
 
+class TinyAlexNet5(TinyAlexNet):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['input_shape'] = (128, 128, 3)
+        kwargs['output_shape'] = (14, 14)
+        kwargs['batch_size'] = 64
+        if 'output_layers' in kwargs:
+            self.output_layers = kwargs['output_layers']
+            del kwargs['output_layers']
+        else:
+            self.output_layers = 2
+        if 'use_sigmoid' in kwargs:
+            self.use_sigmoid = kwargs['use_sigmoid']
+            del kwargs['use_sigmoid']
+        else:
+            self.use_sigmoid = True
+        super(TinyAlexNet5, self).__init__(*args, **kwargs)
+
+    def _add_more_layers_to_model(self, model):
+        trainable = False
+        model.add(MaxPooling2D((3, 3), strides=(2,2), dim_ordering='th',
+                               name='experiment4_layer_1_MaxPooling2D', trainable=trainable))
+        model.add(Convolution2D(256, 5, 5, dim_ordering='th', border_mode='same', activation='relu',
+                                name='experiment4_layer_2_Convolution2D', trainable=trainable))
+        # model.add(Convolution2D(256, 3, 3, dim_ordering='th'))
+        # model.add(SpatialDropout2D(0.5, dim_ordering='th'))
+        model.add(Convolution2D(356, 3, 3, dim_ordering='th', border_mode='same', activation='relu',
+                                name='experiment4_layer_3_Convolution2D', trainable=trainable))
+        model.add(SpatialDropout2D(0.7, dim_ordering='th',
+                                   name='experiment4_layer_4_SpatialDropout2D', trainable=trainable))
+        model.add(BatchNormalization(axis=1, name='experiment4_layer_5_BatchNormalization', trainable=trainable))
+        model.add(MaxPooling2D((2, 2), dim_ordering='th',
+                               name='experiment4_layer_6_MaxPooling2D', trainable=trainable))
+        model.add(Convolution2D(200, 5, 5, dim_ordering='th', border_mode='same', activation='relu',
+                                name='experiment4_layer_7_Convolution2D', trainable=trainable))
+        model.add(SpatialDropout2D(0.5, dim_ordering='th',
+                                   name='experiment4_layer_8_SpatialDropout2D', trainable=trainable))
+        model.add(BatchNormalization(axis=1, name='experiment4_layer_9_BatchNormalization', trainable=trainable))
+            # model.add(Convolution2D(130, 3, 3, dim_ordering='th'))
+        last_layer_activation = 'sigmoid'
+        if not self.use_sigmoid:
+            last_layer_activation = 'tanh'
+        model.add(Convolution2D(self.output_layers, 1, 1, dim_ordering='th', activation=last_layer_activation,
+                                name='experiment4_layer_10_Convolution2D', trainable=True))
+
+    def _get_conv1_sub_sample(self):
+        return (2, 2)
+
 if __name__ == '__main__':
     config = CnnDirsConfig()
-    model = TinyAlexNet3(config, 'flic.valid.07', 'second-alex')
-    print model.get_predicted_test().shape
+    # model = TinyAlexNet3(config, 'flic.valid.07', 'second-alex')
+    # print model.get_predicted_test().shape
 
     # m2 = m5_gauss = Model5(config, 'flic.valid.07', 'flic2')
-    models = {'z': model}
+    # models = {'z': model}
     # viewer = ModelsViewer(models, load_models=False)
     # viewer.init_my_canvas()
+    from cnnbase2.data_feeders.data_feeder_cnn_model_like import DataFeederCnnModelBaseLike
+    from cnnbase2.data_feeders.dumy_data_feeders_merger import DummyFeedersMerge
+
+    load_train = False
+    cars_feeder = DataFeederCnnModelBaseLike(config, '5000examples', load_train=load_train).init_car_type(smaller_car=True)
+    human_feeder = DataFeederCnnModelBaseLike(config, 'flic.shuffle.code10', load_train=load_train).init_human_type(y_gen_mode='r')
+
+    merger_feeder = DummyFeedersMerge(cars_feeder, human_feeder, load_train=load_train)
+    model = TinyAlexNet5(config, prepared_data=merger_feeder)
+    model.load_from_file("june15.experiment4.e40.2017-06-16--02-57-33.TinyAlexNet5.model")
