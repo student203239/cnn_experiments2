@@ -23,8 +23,8 @@ class ModelsViewer(object):
             # self.models_container = ModelsConatiner(self.create_models_cars2_with_data_feeder(config), _is_car_like_predict_shape=False)
             # self.models_container = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
             from cnnbase2.learns.learn_double_layer import Experiment4ModelContainer
-            self.models_container = Experiment4ModelContainer(config, load_train=False)
-            # self.models_container = ModelsContainerExperiment3(config)
+            # self.models_container = Experiment4ModelContainer(config, load_train=False)
+            self.models_container = ModelsContainerExperiment3(config)
         self.models_container.prepare_models_to_view()
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
@@ -229,6 +229,8 @@ class ModelsConatiner(object):
         return self.models_dict[model_key]
 
     def get_init_model(self):
+        if not hasattr(self, 'init_model_key'):
+            self.init_model_key = 'x'
         return self.models_dict[self.init_model_key]
 
     def get_models_keys(self):

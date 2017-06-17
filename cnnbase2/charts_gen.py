@@ -184,10 +184,10 @@ class ChartsGen():
         if select_expect_callable is not None:
             expects_src, predicts_src = self._remove_imgs_from_expects(expects_src, predicts_src,
                                                                    keep_callable=select_expect_callable)
+        if self.always_expect_zeros:
+            expects_src = np.zeros(expects_src.shape, dtype=expects_src.dtype)
         diffs = (expects_src - predicts_src).flatten()
         expects = ImgUtlis.alfa_cut_image(alpha, expects_src)
-        if self.always_expect_zeros:
-            expects = np.zeros(expects.shape, dtype=expects.dtype)
         predicts = ImgUtlis.alfa_cut_image(alpha, predicts_src)
         errorsStatistics = ImgUtlis.count_advance_errors(expects, predicts)
         return errorsStatistics, diffs
@@ -286,4 +286,5 @@ def table_experiement4_with_prev_models(evaluate_on_zeros=False):
 if __name__ == '__main__':
     # charts_gen_experiment3()
     # table_experiement4()
-    table_experiement4_with_prev_models(evaluate_on_zeros=True)
+    alpha_table_experiement3()
+    # table_experiement4_with_prev_models(evaluate_on_zeros=False)
