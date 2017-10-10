@@ -11,7 +11,7 @@ from skimage import img_as_ubyte
 
 from cnnbase2.img_utils import ImgUtlis
 from cnnbase2.load_data import CnnDirsConfig
-from cnnbase2.models2 import TinyAlexNet4
+from cnnbase2.models2 import TinyAlexNet4, TinyAlexNet4Double
 
 filename = "D:\mgr_dir1\\video\MOV_0529.mp4"
 print os.path.exists(filename)
@@ -43,7 +43,9 @@ while(cap.isOpened()):
 cap.release()
 print "Done reading video"
 config = CnnDirsConfig()
-model = TinyAlexNet4(config, None, 'alex_code10.e60.2017-04-08--14-09-55')
+# model = TinyAlexNet4(config, None, 'alex_code10.e60.2017-04-08--14-09-55')
+model = TinyAlexNet4(config, None, 'alex_code10.e135.2017-04-09--07-16-27')
+# model = TinyAlexNet4Double(config, None, 'june15.experiment4.e40.2017-06-16--02-57-33')
 model.load_from_file()
 predicted = model.predict(model_input, verbose=1, batch_size=110)
 # print predicted.shape (322L, 1L, 14L, 14L)

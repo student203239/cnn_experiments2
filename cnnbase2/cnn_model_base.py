@@ -34,7 +34,8 @@ class CnnModelDecorator(object):
             if data_file is not None:
                 self._prepare_train_data(data_file, output_shape)
             else:
-                raise Exception("unable to load up data, comment this if you want just predict by random CNN")
+                pass
+                # raise Exception("unable to load up data, comment this if you want just predict by random CNN")
         self._create_model(input_shape)
 
     def set_default_filename(self, default_filename):
