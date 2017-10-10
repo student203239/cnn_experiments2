@@ -23,9 +23,10 @@ class ModelsViewer(object):
             # self.models_container = ModelsConatiner(self.create_models_cars2_with_data_feeder(config), _is_car_like_predict_shape=False)
             # self.models_container = ModelsContainerExperiment1(CnnDirsConfig(), base_filename='mayc10%s.june12.experiment1')
             from cnnbase2.learns.learn_double_layer import Experiment4ModelContainer
-            # self.models_container = Experiment4ModelContainer(config, load_train=False)
+            self.models_container = Experiment4ModelContainer(config, load_train=False)
             from cnnbase2.learns.learn_sigmoid_experiemnt5 import Experiment5ModelContainer
-            self.models_container = Experiment5ModelContainer(config, load_train=False)
+            from cnnbase2.learns.learn_sigmoid_experiemnt5_continue import Experiment5ContinueModelContainer
+            # self.models_container = Experiment5ContinueModelContainer(config, load_train=False)
         self.models_container.prepare_models_to_view()
         # self.models = self.create_models_cars(config)
         self.model = self.models_container.get_init_model()
