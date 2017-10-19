@@ -4,13 +4,14 @@ from cnnbase2.img_utils import ImgUtlis
 import numpy as np
 
 from cnnbase2.load_data import CnnDirsConfig
-from cnnbase2.models2 import TinyAlexNet4
+from cnnbase2.models2 import TinyAlexNet4, TinyAlexNet4Double
 
-def mul_img_by_y(src_frame, y, out_resolution=(640, 480)):
+
+def mul_img_by_y(src_frame_sq, y, out_resolution=(640, 480)):
     cell_size = float(out_resolution[0]) / y.shape[0]
     y[y<0.1] = 0
-    h, src_frame_sq, w = ImgUtlis.make_img_square(src_frame, move_up=True)
-    src_frame_sq = ImgUtlis.resize_rgb_image(src_frame_sq, *out_resolution)
+    # h, src_frame_sq, w = ImgUtlis.make_img_square(src_frame, move_up=True)
+    # src_frame_sq = ImgUtlis.resize_rgb_image(src_frame_sq, *out_resolution)
     # img_mul = model.multiply_rgb_img_by_gray_img(y, src_frame_sq, advanced_resize=True)
     img_mul = src_frame_sq
     for xi in range(y.shape[0]):
@@ -45,6 +46,7 @@ while True:
 
     if ret_val:
         h, frame_sq, w = ImgUtlis.make_img_square(img, move_up=True)
+        frame_sq_copy = frame_sq[:,:,:]
         f2 = ImgUtlis.resize_rgb_image(frame_sq, 128, 128)
         frame_index = 0
         model_input[frame_index,:,:,:] = f2
@@ -52,8 +54,11 @@ while True:
         predicted = model.predict(model_input, verbose=1, batch_size=110)
         predicted_img = predicted[0,0,:,:]
 
-        ii = mul_img_by_y(img, predicted_img)
-        cv2.imshow('webcam', ii)
+        # ii = mul_img_by_y(frame_sq_copy, predicted_img, frame_sq_copy.shape[:-1])
+        # ii = mul_img_by_y(frame_sq_copy, predicted_img, frame_sq_copy.shape[:-1])
+        # cv2.imshow('webcam', frame_sq_copy)
+        ii = mul_img_by_y(frame_sq_copy, predicted_img, frame_sq_copy.shape[:-1])
+        cv2.imshow('Medical.ml image processing by Jacek Skoczylas', ii)
 
 
     if cv2.waitKey(1) == 27:
